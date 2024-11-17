@@ -110,10 +110,6 @@ class Sim:
         
         self.http_checkpoint = 20
 
-        # Set TCP timeouts <netopen_timeout>,<cipopen_timeout>,<cipsend_timeout> (default are 120s each)
-        # TODO: Figure out whether these apply to AT+HTTPACTION or not
-        response = await self.send_command("AT+CIPTIMEOUT=30000,30000,30000", accept_response=["OK\r\n"])
-
         response = await self.send_command("AT+COPS?", accept_response="OK\r\n") # Network information
         # E.g. b'AT+COPS?\r\r\n+COPS: 0,0,"elisa elisa",7\r\n\r\nOK\r\n'
         # TODO: Parse response
