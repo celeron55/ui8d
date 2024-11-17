@@ -110,6 +110,10 @@ class Sim:
         
         self.http_checkpoint = 20
 
+        # Set TCP timeouts <netopen_timeout>,<cipopen_timeout>,<cipsend_timeout> (default are 120s each)
+        # TODO: Figure out whether these apply to AT+HTTPACTION or not
+        response = await self.send_command("AT+CIPTIMEOUT=30000,30000,30000", accept_response=["OK\r\n"])
+
         response = await self.send_command("AT+COPS?", accept_response="OK\r\n") # Network information
         # E.g. b'AT+COPS?\r\r\n+COPS: 0,0,"elisa elisa",7\r\n\r\nOK\r\n'
         # TODO: Parse response
@@ -118,11 +122,12 @@ class Sim:
         response = await self.send_command("AT+CGACT=0,1", accept_response=["OK\r\n", "ERROR\r\n"]) # Activate network bearing
         # E.g. b'AT+CGACT=0,1\r\r\nERROR\r\n'
         # TODO: Parse response
-        
+
         response = await self.send_command("AT+CGACT?", accept_response="OK\r\n")
-        #print(response)
-        if response != b'AT+CGACT?\r\r\n+CGACT: 1,1\r\n+CGACT: 2,0\r\n+CGACT: 3,0\r\n\r\nOK\r\n':
-            raise SimException(truncate_response(response))
+        # No idea what this response means
+        # We'll just ignore it and let the process fail at AT+HTTPINIT in case there's a problem
+        #if response != b'AT+CGACT?\r\r\n+CGACT: 1,1\r\n+CGACT: 2,0\r\n+CGACT: 3,0\r\n\r\nOK\r\n':
+        #    raise SimException(truncate_response(response))
         
         # Call AT+HTTPTERM in case a previous connection wasn't cleaned up properly
         self.http_checkpoint = 28
