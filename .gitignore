@@ -1,0 +1,13 @@
+.*
+!.gitignore
+local
+arkisto
+session.vim
+export
+*backups
+bak
+
+# KiCad
+*-cache
+*.lck
+*.log
