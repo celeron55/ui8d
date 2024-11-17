@@ -9,6 +9,7 @@ import sys
 
 import asyncio
 import backlight
+import local_config
 
 button_pins = [
     machine.Pin("BUTTON1", machine.Pin.IN, machine.Pin.PULL_UP),
@@ -329,7 +330,7 @@ async def sim_task():
         try:
             print("sim_task: HTTP request")
             params.set_value("sim_status", "req")
-            response = await sim.http_get("http://www.example.com", timeout_ms=30000, response_max_len=1000)
+            response = await sim.http_get("{:s}?ticks_ms={:d}&successes={:d}&failures={:d}&last_http_checkpoint={:d}".format(local_config.GET_URL_PREFIX, utime.ticks_ms(), params.get("sim_successes").value, params.get("sim_failures").value, sim.http_checkpoint), timeout_ms=30000, response_max_len=100)
             print("sim_task: HTTP response: "+repr(response))
             params.set_value("sim_status", "res")
             params.set_value("sim_successes", params.get("sim_successes").value + 1)
