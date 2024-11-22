@@ -5,8 +5,29 @@ UI8D (ui8d) is a user interface and telematics board. It is mainly targeted
 towards EV conversions and for being a companion board to the IPDM56v2, but it
 can be useful for other purposes also.
 
+Hardware gotchas
+================
+
+Remote8D v2.0 (UI8D v2.0)
+-------------------------
+
+1. U305 needs to be rotated so that (when looking at it so that there's one top
+   pin and two bottom pins) the top pin moves in place of the right pin, and the
+   right pin moves in place of the top pin. The remaining pin that was
+   originally on the left has to be connected using a bodge wire to ground,
+   which can be found on the left side of RC26
+
+2. U308 needs to be rotated so that (when looking at it so that there's one top
+   pin and two bottom pins) the right pin moves in place of the top pin, the
+   left pin remains in place and the top pin has to be connected to the original
+   pad of the right pin by a bodge wire.
+
+3. Remember to solder on U303 which is the 5V regulator module. Otherwise the
+   board will do nothing.
+
 MicroPython
------------
+===========
+
 You can use micropython on UI8D.
 
 You should compile the special board port that was made for the UI8D.
