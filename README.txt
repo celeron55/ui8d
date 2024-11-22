@@ -38,6 +38,10 @@ Remote8D v2.0 (UI8D v2.0)
    out of RAM first. The SD card storage is visible via USB.
 	* E.g. `sudo mkfs.fat -F 32 /dev/mmcblk0p1`
 
+5. When pressing BUTTON1 on a bare board, beware of the reset pin on the pin
+   header at the corner. You are very likely to accidentally reset the board
+   when touching the corner.
+
 MicroPython
 ===========
 
