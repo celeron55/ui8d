@@ -29,6 +29,7 @@ Remote8D v2.0 (UI8D v2.0)
    to format a Micro SD card with the fat32 filesystem and insert it into the
    slot. This way you will have practically infinite program space and will run
    out of RAM first.
+	* E.g. `sudo mkfs.fat -F 32 /dev/mmcblk0p1`
 
 MicroPython
 ===========
