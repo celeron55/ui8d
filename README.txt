@@ -28,7 +28,7 @@ Remote8D v2.0 (UI8D v2.0)
 4. MicroPython on STM32F4 has very little program space in the flash. You need
    to format a Micro SD card with the fat32 filesystem and insert it into the
    slot. This way you will have practically infinite program space and will run
-   out of RAM first.
+   out of RAM first. The SD card storage is visible via USB.
 	* E.g. `sudo mkfs.fat -F 32 /dev/mmcblk0p1`
 
 MicroPython
