@@ -15,7 +15,7 @@ Remote8D v2.0 (UI8D v2.0)
    pin and two bottom pins) the top pin moves in place of the right pin, and the
    right pin moves in place of the top pin. The remaining pin that was
    originally on the left has to be connected using a bodge wire to ground,
-   which can be found on the left side of RC26
+   which can be the original pad of the left pin, or the bottom end of R303.
 
 2. U308 needs to be rotated so that (when looking at it so that there's one top
    pin and two bottom pins) the right pin moves in place of the top pin, the
@@ -24,6 +24,11 @@ Remote8D v2.0 (UI8D v2.0)
 
 3. Remember to solder on U303 which is the 5V regulator module. Otherwise the
    board will do nothing.
+
+4. MicroPython on STM32F4 has very little program space in the flash. You need
+   to format a Micro SD card with the fat32 filesystem and insert it into the
+   slot. This way you will have practically infinite program space and will run
+   out of RAM first.
 
 MicroPython
 ===========
