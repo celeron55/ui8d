@@ -5,6 +5,13 @@ UI8D (ui8d) is a user interface and telematics board. It is mainly targeted
 towards EV conversions and for being a companion board to the IPDM56v2, but it
 can be useful for other purposes also.
 
+Software gotchas
+================
+
+Some modules have been frozen into the firmware, to enable having space left for
+the actual program. Here is the current list:
+- ili9341.py
+
 Hardware gotchas
 ================
 
