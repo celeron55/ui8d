@@ -32,13 +32,17 @@ Remote8D v2.0 (UI8D v2.0)
 3. Remember to solder on U303 which is the 5V regulator module. Otherwise the
    board will do nothing.
 
-4. MicroPython on STM32F4 has very little program space in the flash. You need
+4. If you have a board where U302 was replaced with SP3223E (it should be an
+   SP3222E): In order to use the RS232 connection towards the main board, you
+   need to connect U302 pin 14 (ONLINE#) to C310 positive side.
+
+5. MicroPython on STM32F4 has very little program space in the flash. You need
    to format a Micro SD card with the fat32 filesystem and insert it into the
    slot. This way you will have practically infinite program space and will run
    out of RAM first. The SD card storage is visible via USB.
 	* E.g. `sudo mkfs.fat -F 32 /dev/mmcblk0p1`
 
-5. When pressing BUTTON1 on a bare board, beware of the reset pin on the pin
+6. When pressing BUTTON1 on a bare board, beware of the reset pin on the pin
    header at the corner. You are very likely to accidentally reset the board
    when touching the corner.
 
