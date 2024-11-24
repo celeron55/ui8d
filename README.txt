@@ -35,6 +35,8 @@ Remote8D v2.0 (UI8D v2.0)
 4. If you have a board where U302 was replaced with SP3223E (it should be an
    SP3222E): In order to use the RS232 connection towards the main board, you
    need to connect U302 pin 14 (ONLINE#) to C310 positive side.
+	* In order to check whether the U302 charge pump is working, measure from
+	  GND to C308 bottom side (5.7V) and C309 top side (-5.7V)
 
 5. MicroPython on STM32F4 has very little program space in the flash. You need
    to format a Micro SD card with the fat32 filesystem and insert it into the
