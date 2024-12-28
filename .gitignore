@@ -11,3 +11,6 @@ bak
 *-cache
 *.lck
 *.log
+
+# FreeCAD
+*.FCBak
