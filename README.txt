@@ -39,10 +39,10 @@ Remote8D v2.0 (UI8D v2.0)
 	  GND to C308 bottom side (5.7V) and C309 top side (-5.7V), and the TX pin
 	  towards the main board should idle at -5.7V.
 
-5. MicroPython on STM32F4 has very little program space in the flash. You need
-   to format a Micro SD card with the fat32 filesystem and insert it into the
-   slot. This way you will have practically infinite program space and will run
-   out of RAM first. The SD card storage is visible via USB.
+5. MicroPython on STM32F4 has very little program space in the flash. You may
+   want to format a Micro SD card with the fat32 filesystem and insert it into
+   the slot. This way you will have practically infinite program space and will
+   run out of RAM first. The SD card storage is visible via USB.
 	* E.g. `sudo mkfs.fat -F 32 /dev/mmcblk0p1`
 
 6. When pressing BUTTON1 on a bare board, beware of the reset pin on the pin
