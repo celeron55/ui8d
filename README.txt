@@ -49,6 +49,12 @@ Remote8D v2.0 (UI8D v2.0)
    header at the corner. You are very likely to accidentally reset the board
    when touching the corner.
 
+7. The PWMOUT1 and PWMOUT2 outputs are driven by EG3001 MOSFET gate drivers that
+   will fail if the output is loaded with anything more than a capactive load of
+   1nF or so, i.e. they are signal outputs only. If you want to use them _at
+   all_, you should replace the 200mA PPTCs with 1k 1206 resistors. This is
+   _untested_ and may or may not provide enough protection for the drivers.
+
 MicroPython
 ===========
 
