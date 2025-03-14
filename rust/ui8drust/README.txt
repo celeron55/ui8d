@@ -6,6 +6,12 @@ Preparation before doing anything else
 Set the environment variable BASE_URL:
 $ export BASE_URL="http://example.com/report?id=test&"
 
+Symlink your application crate:
+$ ln -s /wherever/app app
+
+Or if you don't have a specific application, symlink the example app:
+$ ln -s app_example app
+
 Performance benchmarking
 ------------------------
 Heap profiling

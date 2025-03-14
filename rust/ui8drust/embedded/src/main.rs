@@ -19,7 +19,6 @@ use hal::{
     prelude::*,
     serial,
 };
-use rtic::app;
 use rtic_monotonics::{systick::*, Monotonic};
 use stm32f4xx_hal as hal;
 use usb_device::prelude::*;
@@ -321,8 +320,8 @@ static mut PANIC_BUTTON3_PIN: Option<Button3Pin> = None;
 
 // RTIC application
 
-#[app(device = hal::pac, peripherals = true, dispatchers = [UART5, I2C3_ER, USART6])]
-mod app {
+#[rtic::app(device = hal::pac, peripherals = true, dispatchers = [UART5, I2C3_ER, USART6])]
+mod rtic_app {
     use super::*;
 
     #[shared]
@@ -796,7 +795,7 @@ mod app {
         ]
     )]
     async fn ui_task(mut cx: ui_task::Context) {
-        let mut state = common::MainState::new();
+        let mut state = app::MainState::new();
 
         loop {
             // Update values

@@ -32,6 +32,7 @@ fixedstr = { version = "0.5", features = ["no-alloc"] }
 
 # Our own thing
 common = { path = "../common" }
+app = { path = "../app" }
 
 # Stash of unused but possibly useful stuff
 #defmt = "0.3"

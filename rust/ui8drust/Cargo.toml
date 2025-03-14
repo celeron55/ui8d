@@ -3,6 +3,7 @@ members = [
   "common",
   "embedded",
   "desktop",
+  "app",
 ]
 resolver = "2"
 

@@ -140,6 +140,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "34ac096ce696dc2fcabef30516bb13c0a68a11d30131d3df6f04711467681b04"
 
 [[package]]
+name = "app"
+version = "0.1.0"
+dependencies = [
+ "arrayvec",
+ "bxcan 0.8.0",
+ "common",
+ "embedded-graphics",
+ "fixedstr",
+ "int-enum",
+ "log",
+ "profont",
+ "ringbuffer",
+ "safe-regex",
+]
+
+[[package]]
 name = "arbitrary"
 version = "1.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -638,6 +654,7 @@ dependencies = [
 name = "desktop"
 version = "0.1.0"
 dependencies = [
+ "app",
  "arrayvec",
  "clap",
  "common",
@@ -741,6 +758,7 @@ checksum = "60b1af1c220855b6ceac025d3f6ecdd2b7c4894bfe9cd9bda4fbb4bc7c0d4cf0"
 name = "embedded"
 version = "0.1.0"
 dependencies = [
+ "app",
  "arrayvec",
  "common",
  "cortex-m",

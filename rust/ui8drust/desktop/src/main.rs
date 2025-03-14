@@ -159,7 +159,7 @@ fn main() {
     let mut events = Events::new(event_settings);
     window.events = events;
 
-    let mut state = common::MainState::new();
+    let mut state = app::MainState::new();
     state.store_log_for_display("See stderr for desktop log");
 
     let mut hw = HardwareImplementation::new();

@@ -1,3 +1,6 @@
+# Project specific downstream symlink accomodation
+app
+
 # The usual
 
 .*
