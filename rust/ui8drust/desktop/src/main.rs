@@ -3,11 +3,10 @@ mod cli;
 use cli::Cli;
 mod sim7600simulator;
 use sim7600simulator::Sim7600Simulator;
-mod can_simulator;
-use can_simulator::CanSimulator;
 
 // Internal crates
 use common::*;
+use app::can_simulator::CanSimulator;
 
 // Platform-specific dependencies
 use ::image as im;

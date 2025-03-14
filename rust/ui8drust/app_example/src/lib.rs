@@ -6,6 +6,8 @@ const base_url: &str = env!("BASE_URL");
 
 use common::*;
 
+pub mod can_simulator;
+
 pub extern crate bxcan;
 pub extern crate embedded_graphics;
 pub extern crate log;
