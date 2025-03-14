@@ -1,6 +1,11 @@
 ui8drust
 ========
 
+Preparation before doing anything else
+--------------------------------------
+Set the environment variable BASE_URL:
+$ export BASE_URL="http://example.com/report?id=test&"
+
 Performance benchmarking
 ------------------------
 Heap profiling
