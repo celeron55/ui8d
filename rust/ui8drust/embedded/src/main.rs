@@ -236,12 +236,14 @@ type Boot0ControlPin = gpio::Pin<'A', 8, gpio::Output<gpio::PushPull>>;
 type WakeupOutputPin = gpio::Pin<'E', 0, gpio::Output<gpio::PushPull>>;
 // TODO: Change this into an actual PWM output
 type Pwmout1Pin = gpio::Pin<'A', 15, gpio::Output<gpio::PushPull>>;
+type Sim7600PowerInhibitPin = gpio::PB9<gpio::Output<gpio::PushPull>>;
 
 struct HardwareImplementation {
     display: &'static mut Display,
     boot0_control_pin: &'static mut Boot0ControlPin,
     wakeup_output_pin: WakeupOutputPin,
     pwmout1_pin: Pwmout1Pin,
+    sim7600_power_inhibit_pin: Sim7600PowerInhibitPin,
     sim7600driver: Sim7600Driver,
     can_tx_buf: ConstGenericRingBuffer<bxcan::Frame, 10>,
     adc_result_vbat: f32,
@@ -306,6 +308,7 @@ impl HardwareInterface for HardwareImplementation {
         match output {
             DigitalOutput::Wakeup => { self.wakeup_output_pin.set_state(value.into()) }
             DigitalOutput::Pwmout1 => { self.pwmout1_pin.set_state(value.into()) }
+            DigitalOutput::Sim7600PowerInhibit => { self.sim7600_power_inhibit_pin.set_state(value.into()) }
         }
     }
 }
@@ -364,7 +367,7 @@ mod rtic_app {
         adc_pa3: gpio::Pin<'A', 3, gpio::Analog>,
         // Digital input pins
         // Output pins
-        sim7600_power_control_pin: gpio::PB9<gpio::Output<gpio::PushPull>>,
+        // (See HardwareImplementation)
         // PWM output timers
         tim4_pwm: Tim4Pwm,
         last_backlight_pwm: f32,
@@ -405,9 +408,9 @@ mod rtic_app {
 
         // Output pins
 
-        let sim7600_power_control_pin = gpiob
+        let sim7600_power_inhibit_pin = gpiob
             .pb9
-            .into_push_pull_output_in_state(gpio::PinState::High);
+            .into_push_pull_output_in_state(gpio::PinState::Low);
 
         let boot0_control_pin = gpioa.pa8.into_push_pull_output();
         let boot0_control_pin = unsafe {
@@ -707,6 +710,7 @@ mod rtic_app {
             boot0_control_pin,
             wakeup_output_pin,
             pwmout1_pin,
+            sim7600_power_inhibit_pin: sim7600_power_inhibit_pin,
             sim7600driver: Sim7600Driver::new(),
             can_tx_buf: ConstGenericRingBuffer::new(),
             adc_result_vbat: f32::NAN,
@@ -754,7 +758,6 @@ mod rtic_app {
                 adc_pa1: adc_pa1,
                 adc_pa2: adc_pa2,
                 adc_pa3: adc_pa3,
-                sim7600_power_control_pin: sim7600_power_control_pin,
                 tim4_pwm: tim4_pwm,
                 last_backlight_pwm: 0.2,
                 hw,
@@ -836,6 +839,8 @@ mod rtic_app {
             cx.local.hw.sim7600driver.update_time(millis);
             while let Some(b) = cx.local.hw.sim7600driver.buffers.txbuf.dequeue() {
                 cx.shared.sim7600_txbuf.lock(|buf| buf.push(b));
+                // Trigger write to hardware by triggering USART2 interrupt
+                pac::NVIC::pend(pac::Interrupt::USART2);
             }
             while let Some(b) = cx.shared.sim7600_rxbuf.lock(|rxbuf| rxbuf.dequeue()) {
                 cx.local.hw.sim7600driver.push(b);
@@ -1139,7 +1144,7 @@ mod rtic_app {
     fn usart2(mut cx: usart2::Context) {
         // Receive to buffer
         if let Ok(b) = cx.local.usart2_rx.read() {
-            trace!("USART2/SIM7600: Received: {:?}", b);
+            //trace!("USART2/SIM7600: Received: {:?}", b);
             cx.shared.sim7600_rxbuf.lock(|rxbuf| {
                 rxbuf.push(b);
             });

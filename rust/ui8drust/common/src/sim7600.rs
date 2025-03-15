@@ -34,7 +34,9 @@ fn default_send_command(
 }
 
 fn contains_response(rxbuf: &ArrayString<RXBUF_SIZE>, alternate_responses: &[&str]) -> bool {
-    info!("SIM7600: rxbuf: {:?}", rxbuf);
+    /*if rxbuf.len() > 0 {
+        info!("SIM7600: rxbuf: {:?}", rxbuf);
+    }*/
     for response in alternate_responses {
         if rxbuf.contains(response) {
             info!(
@@ -80,29 +82,16 @@ fn parse_byte_slice_as_u32(bytes: &[u8]) -> Option<u32> {
 static REQUEST_STEPS: [RequestStep; 11] = [
     RequestStep {
         command: "AT+CPIN?\r",
-        timeout_ms: 1000,
-        max_retry_count: 60,
-        accept_response: &[],
+        timeout_ms: 2000,
+        max_retry_count: 30,
+        accept_response: &["+CPIN: READY"],
         send_command: default_send_command,
-        on_parse: |step: &RequestStep,
-                   request: &mut RequestStatus,
-                   driver: &mut Sim7600DriverBuffers|
-         -> HttpUpdateStatus {
-            if *driver.rxbuf == *"AT+CPIN?\r\r\n+CPIN: READY\r\n\r\nOK\r\n" {
-                info!("{:?} response {:?} ok", step.command, driver.rxbuf);
-                driver.rxbuf.clear();
-                request.next_step(driver.millis);
-                request.send_step_command(driver);
-                HttpUpdateStatus::Processing
-            } else {
-                HttpUpdateStatus::Processing
-            }
-        },
+        on_parse: default_on_parse,
     },
     RequestStep {
         command: "AT+CSQ\r",
         timeout_ms: 1000,
-        max_retry_count: 1,
+        max_retry_count: 5,
         accept_response: &["OK\r\n"],
         send_command: default_send_command,
         on_parse: default_on_parse,
@@ -110,7 +99,7 @@ static REQUEST_STEPS: [RequestStep; 11] = [
     RequestStep {
         command: "AT+CGREG?\r",
         timeout_ms: 1000,
-        max_retry_count: 1,
+        max_retry_count: 120,
         accept_response: &[],
         send_command: default_send_command,
         on_parse: |step: &RequestStep,
@@ -120,11 +109,26 @@ static REQUEST_STEPS: [RequestStep; 11] = [
             if *driver.rxbuf == *"AT+CGREG?\r\r\n+CGREG: 0,1\r\n\r\nOK\r\n"
                 || *driver.rxbuf == *"AT+CGREG?\r\r\n+CGREG: 0,5\r\n\r\nOK\r\n"
             {
+                // 0,1 = roaming, 0,5 = home network
                 info!("{:?} response {:?} ok", step.command, driver.rxbuf);
                 driver.rxbuf.clear();
                 request.next_step(driver.millis);
                 request.send_step_command(driver);
                 HttpUpdateStatus::Processing
+            } else if *driver.rxbuf == *"AT+CGREG?\r\r\n+CGREG: 0,2\r\n\r\nOK\r\n" {
+                // 0,2 = not registered to any network
+                // The modem is probably trying to, but the signal isn't very
+                // good
+                HttpUpdateStatus::Processing
+            } else if driver.rxbuf.len() > 0 {
+                // The result is something we don't like. Bail out if we have
+                // retried many times already
+                if request.try_counter > 5 {
+                    request.step_i = None;
+                    HttpUpdateStatus::Failed(HttpFailReason::InternalTimeout)
+                } else {
+                    HttpUpdateStatus::Processing
+                }
             } else {
                 HttpUpdateStatus::Processing
             }
@@ -133,7 +137,7 @@ static REQUEST_STEPS: [RequestStep; 11] = [
     RequestStep {
         command: "AT+COPS?\r",
         timeout_ms: 1000,
-        max_retry_count: 1,
+        max_retry_count: 5,
         accept_response: &["OK\r\n"],
         send_command: default_send_command,
         on_parse: default_on_parse,
@@ -141,7 +145,7 @@ static REQUEST_STEPS: [RequestStep; 11] = [
     RequestStep {
         command: "AT+CGACT=0,1\r",
         timeout_ms: 1000,
-        max_retry_count: 1,
+        max_retry_count: 5,
         accept_response: &["OK\r\n", "ERROR\r\n"],
         send_command: default_send_command,
         on_parse: default_on_parse,
@@ -149,7 +153,7 @@ static REQUEST_STEPS: [RequestStep; 11] = [
     RequestStep {
         command: "AT+CGACT?\r",
         timeout_ms: 1000,
-        max_retry_count: 1,
+        max_retry_count: 5,
         accept_response: &["OK\r\n"],
         send_command: default_send_command,
         on_parse: default_on_parse,
@@ -157,7 +161,7 @@ static REQUEST_STEPS: [RequestStep; 11] = [
     RequestStep {
         command: "AT+HTTPTERM\r",
         timeout_ms: 1000,
-        max_retry_count: 1,
+        max_retry_count: 5,
         accept_response: &["OK\r\n", "ERROR\r\n"],
         send_command: default_send_command,
         on_parse: default_on_parse,
@@ -165,15 +169,15 @@ static REQUEST_STEPS: [RequestStep; 11] = [
     RequestStep {
         command: "AT+HTTPINIT\r",
         timeout_ms: 1000,
-        max_retry_count: 1,
+        max_retry_count: 5,
         accept_response: &["OK\r\n", "ERROR\r\n"],
         send_command: default_send_command,
         on_parse: default_on_parse,
     },
     RequestStep {
         command: "(AT+HTTPPARA)",
-        timeout_ms: 1000,
-        max_retry_count: 1,
+        timeout_ms: 3000,
+        max_retry_count: 5,
         accept_response: &["OK\r\n"],
         send_command: |_step: &RequestStep,
                        request: &mut RequestStatus,
@@ -223,7 +227,7 @@ static REQUEST_STEPS: [RequestStep; 11] = [
     },
     RequestStep {
         command: "(AT+HTTPREAD)",
-        timeout_ms: 1000,
+        timeout_ms: 2000,
         max_retry_count: 1,
         accept_response: &[],
         send_command: |_step: &RequestStep,
@@ -313,6 +317,8 @@ impl RequestStatus {
         }
         self.step_i = new_step_i;
         self.step_timestamp = millis;
+        self.try_counter = 0;
+        self.try_timestamp = millis;
     }
 
     fn next_step(&mut self, millis: u64) {
@@ -417,8 +423,13 @@ impl Sim7600Driver {
                         HttpUpdateStatus::Failed(HttpFailReason::InternalTimeout)
                     } else {
                         // Retry
+                        self.buffers.rxbuf.clear();
                         request.try_timestamp = self.buffers.millis;
                         request.try_counter += 1;
+                        info!(
+                            "SIM7600: Sending step {} command {:?} (try {})",
+                            step_i, step.command, request.try_counter
+                        );
                         (step.send_command)(step, request, &mut self.buffers);
                         HttpUpdateStatus::Processing
                     }
@@ -427,8 +438,9 @@ impl Sim7600Driver {
                     (step.on_parse)(step, request, &mut self.buffers)
                 }
             } else {
-                self.buffers.rxbuf.clear();
-                HttpUpdateStatus::Failed(HttpFailReason::InternalError)
+                // We end up here after some timeouts and whatnot, so we'll just
+                // consider this the same as self.request == None
+                HttpUpdateStatus::NotStarted
             }
         } else {
             HttpUpdateStatus::NotStarted

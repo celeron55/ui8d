@@ -68,6 +68,7 @@ pub enum AnalogInput {
 pub enum DigitalOutput {
     Wakeup,
     Pwmout1, // TODO: Convert to actual PWM output
+    Sim7600PowerInhibit,
 }
 
 pub trait HardwareInterface {
