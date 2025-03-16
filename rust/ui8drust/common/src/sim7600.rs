@@ -79,12 +79,20 @@ fn parse_byte_slice_as_u32(bytes: &[u8]) -> Option<u32> {
 
 // SIM7500_SIM7600_Series_HTTP(S)_Application_Note_V2.00.pdf
 
-static REQUEST_STEPS: [RequestStep; 11] = [
+static REQUEST_STEPS: [RequestStep; 14] = [
     RequestStep {
         command: "AT+CPIN?\r",
         timeout_ms: 2000,
         max_retry_count: 30,
         accept_response: &["+CPIN: READY"],
+        send_command: default_send_command,
+        on_parse: default_on_parse,
+    },
+    RequestStep {
+        command: "AT+HTTPTERM\r",
+        timeout_ms: 1000,
+        max_retry_count: 5,
+        accept_response: &["OK\r\n", "ERROR\r\n"],
         send_command: default_send_command,
         on_parse: default_on_parse,
     },
@@ -159,14 +167,6 @@ static REQUEST_STEPS: [RequestStep; 11] = [
         on_parse: default_on_parse,
     },
     RequestStep {
-        command: "AT+HTTPTERM\r",
-        timeout_ms: 1000,
-        max_retry_count: 5,
-        accept_response: &["OK\r\n", "ERROR\r\n"],
-        send_command: default_send_command,
-        on_parse: default_on_parse,
-    },
-    RequestStep {
         command: "AT+HTTPINIT\r",
         timeout_ms: 1000,
         max_retry_count: 5,
@@ -175,7 +175,43 @@ static REQUEST_STEPS: [RequestStep; 11] = [
         on_parse: default_on_parse,
     },
     RequestStep {
-        command: "(AT+HTTPPARA)",
+        command: "(AT+HTTPPARA=\"CONNECTTO\")",
+        timeout_ms: 3000,
+        max_retry_count: 5,
+        accept_response: &["OK\r\n"],
+        send_command: |_step: &RequestStep,
+                       request: &mut RequestStatus,
+                       driver: &mut Sim7600DriverBuffers| {
+            driver.send_command("AT+HTTPPARA=\"CONNECTTO\",20\r");
+        },
+        on_parse: default_on_parse,
+    },
+    RequestStep {
+        command: "(AT+HTTPPARA=\"RECVTO\")",
+        timeout_ms: 3000,
+        max_retry_count: 5,
+        accept_response: &["OK\r\n"],
+        send_command: |_step: &RequestStep,
+                       request: &mut RequestStatus,
+                       driver: &mut Sim7600DriverBuffers| {
+            driver.send_command("AT+HTTPPARA=\"RECVTO\",10\r");
+        },
+        on_parse: default_on_parse,
+    },
+    RequestStep {
+        command: "(AT+HTTPPARA=\"RESPTO\")",
+        timeout_ms: 3000,
+        max_retry_count: 5,
+        accept_response: &["OK\r\n"],
+        send_command: |_step: &RequestStep,
+                       request: &mut RequestStatus,
+                       driver: &mut Sim7600DriverBuffers| {
+            driver.send_command("AT+HTTPPARA=\"RESPTO\",20\r");
+        },
+        on_parse: default_on_parse,
+    },
+    RequestStep {
+        command: "(AT+HTTPPARA=\"URL\")",
         timeout_ms: 3000,
         max_retry_count: 5,
         accept_response: &["OK\r\n"],
@@ -190,7 +226,9 @@ static REQUEST_STEPS: [RequestStep; 11] = [
     },
     RequestStep {
         command: "AT+HTTPACTION=0\r",
-        timeout_ms: 20000,
+        // SIM7600 manual says 120s maximum, but in reality nothing ever happens
+        // after 20s anyway
+        timeout_ms: 60000,
         max_retry_count: 1,
         accept_response: &["HTTPACTION:"],
         send_command: default_send_command,
@@ -199,10 +237,11 @@ static REQUEST_STEPS: [RequestStep; 11] = [
                    driver: &mut Sim7600DriverBuffers|
          -> HttpUpdateStatus {
             // Response format:
-            // 'HTTPACTION:\s*\d+,\s*(\d+),\s*(\d+)\r'
+            // 'AT+HTTPACTION=0\r\r\n+HTTPACTION: 0,200,8\r\n'
+            // 'AT+HTTPACTION=0\r\r\n+HTTPACTION:\s*\d+,\s*(\d+),\s*(\d+)', where:
             // int(match.group(1)) = status_code
             // int(match.group(2)) = content_length
-            let matcher = regex!(br"HTTPACTION:[^0-9]*[0-9]+,[^0-9]*([0-9]+),[^0-9]*([0-9]+)\r\n");
+            let matcher = regex!(br".*HTTPACTION:[^0-9]*[0-9]+,[^0-9]*([0-9]+),[^0-9]*([0-9]+)\r\n");
 
             let m = matcher.match_slices(driver.rxbuf.as_bytes());
             if let Some(m) = m {
@@ -220,8 +259,14 @@ static REQUEST_STEPS: [RequestStep; 11] = [
                     driver.rxbuf.clear();
                     request.next_step(driver.millis);
                     request.send_step_command(driver);
+                    return HttpUpdateStatus::Processing
                 }
             }
+
+            if driver.rxbuf.contains("HTTP_NONET_EVENT") {
+                return HttpUpdateStatus::Failed(HttpFailReason::ServerTimeout);
+            }
+
             HttpUpdateStatus::Processing
         },
     },
@@ -256,25 +301,25 @@ static REQUEST_STEPS: [RequestStep; 11] = [
                 read_len
             );
 
-            if !driver.rxbuf.contains(&*required_header) {
+            let header_pos_option = driver.rxbuf.find(&*required_header);
+
+            if header_pos_option == None {
                 // Waiting for header
                 info!("SIM7600: AT+HTTPREAD: Waiting for header");
                 return HttpUpdateStatus::Processing;
             }
 
-            let end_marker = "\r\n+HTTPREAD: 0\r\n";
+            let header_pos = header_pos_option.unwrap();
 
-            let data_end = driver.rxbuf.find(end_marker);
-            if data_end.is_none() {
+            let data_end = header_pos + required_header.len() + read_len;
+
+            if driver.rxbuf.len() < data_end {
                 // Waiting for header
-                info!("SIM7600: AT+HTTPREAD: Waiting for end marker");
+                info!("SIM7600: AT+HTTPREAD: Waiting for more data");
                 return HttpUpdateStatus::Processing;
             }
 
-            let data_end = data_end.unwrap();
-            info!("SIM7600: data_end: {:?}", data_end);
-
-            let body = &driver.rxbuf[required_header.len()..data_end];
+            let body = &driver.rxbuf[header_pos + required_header.len()..data_end];
             let body: ArrayString<1000> = ArrayString::from(body).unwrap();
             info!("SIM7600: body: {:?}", body);
 

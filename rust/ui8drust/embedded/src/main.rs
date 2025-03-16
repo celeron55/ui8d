@@ -841,9 +841,20 @@ mod rtic_app {
                 cx.shared.sim7600_txbuf.lock(|buf| buf.push(b));
                 // Trigger write to hardware by triggering USART2 interrupt
                 pac::NVIC::pend(pac::Interrupt::USART2);
+                Systick::delay(1.millis()).await; // NOTE: HACK
             }
+            let mut logged_rxbuf: ArrayString<50> = ArrayString::new();
             while let Some(b) = cx.shared.sim7600_rxbuf.lock(|rxbuf| rxbuf.dequeue()) {
+                logged_rxbuf.push(b as char);
+                if logged_rxbuf.is_full() {
+                    info!("SIM7600: RX: {:?}", logged_rxbuf);
+                    logged_rxbuf.clear();
+                }
                 cx.local.hw.sim7600driver.push(b);
+                //Systick::delay(1.millis()).await; // NOTE: HACK
+            }
+            if !logged_rxbuf.is_empty() {
+                info!("SIM7600: RX: {:?}", logged_rxbuf);
             }
 
             // Handle console commands
@@ -915,6 +926,7 @@ mod rtic_app {
     // External interrupts for buttons
 
     #[task(
+        priority = 3,
         binds = EXTI0,
         shared = [
             wkup_pin,
@@ -943,6 +955,7 @@ mod rtic_app {
     }
 
     #[task(
+        priority = 3,
         binds = EXTI1,
         shared = [
             button2_pin,
@@ -970,6 +983,7 @@ mod rtic_app {
     }
 
     #[task(
+        priority = 3,
         binds = EXTI2,
         shared = [
             button3_pin,
@@ -997,6 +1011,7 @@ mod rtic_app {
     }
 
     #[task(
+        priority = 3,
         binds = EXTI3,
         shared = [
             button4_pin,
@@ -1024,6 +1039,7 @@ mod rtic_app {
     }
 
     #[task(
+        priority = 3,
         binds = EXTI4,
         shared = [
             button5_pin,
@@ -1051,6 +1067,7 @@ mod rtic_app {
     }
 
     #[task(
+        priority = 5,
         binds = USART1,
         shared = [
             console_rxbuf,
@@ -1100,6 +1117,7 @@ mod rtic_app {
     }
 
     /*#[task(
+        priority = 6,
         binds = USART3,
         shared = [mainboard_rxbuf, mainboard_txbuf],
         local = [
@@ -1134,6 +1152,7 @@ mod rtic_app {
     }*/
 
     #[task(
+        priority = 9,
         binds = USART2,
         shared = [sim7600_rxbuf, sim7600_txbuf],
         local = [
@@ -1143,7 +1162,7 @@ mod rtic_app {
     ]
     fn usart2(mut cx: usart2::Context) {
         // Receive to buffer
-        if let Ok(b) = cx.local.usart2_rx.read() {
+        while let Ok(b) = cx.local.usart2_rx.read() {
             //trace!("USART2/SIM7600: Received: {:?}", b);
             cx.shared.sim7600_rxbuf.lock(|rxbuf| {
                 rxbuf.push(b);
@@ -1168,6 +1187,7 @@ mod rtic_app {
     }
 
     #[task(
+        priority = 7,
         binds = OTG_FS,
         shared = [
             usb_dev,
@@ -1234,6 +1254,7 @@ mod rtic_app {
     }
 
     #[task(
+        priority = 8,
         binds = CAN1_RX0,
         shared = [
             can1,
@@ -1250,6 +1271,7 @@ mod rtic_app {
     }
 
     #[task(
+        priority = 8,
         binds = CAN1_RX1,
         shared = [
             can1,
@@ -1266,6 +1288,7 @@ mod rtic_app {
     }
 
     #[task(
+        priority = 8,
         binds = CAN1_TX,
         shared = [
             can1,

@@ -68,6 +68,8 @@ impl Sim7600Simulator {
                 self.url.push_str(url);
                 info!("Sim7600Simulator: Parsed URL: {:?}", url);
                 self.respond("OK\r\n");
+            } else if command.starts_with("AT+HTTPPARA=") {
+                self.respond("OK\r\n");
             } else if *command == *"AT+HTTPACTION=0" {
                 // Execute the actual HTTP request here
                 let r = reqwest::blocking::get(&*self.url).unwrap();
@@ -78,12 +80,13 @@ impl Sim7600Simulator {
                     body: body,
                 });
                 // Response format:
-                // 'HTTPACTION:\s*\d+,\s*(\d+),\s*(\d+)', where:
+                // 'AT+HTTPACTION=0\r\r\n+HTTPACTION: 0,200,8\r\n'
+                // 'AT+HTTPACTION=0\r\r\n+HTTPACTION:\s*\d+,\s*(\d+),\s*(\d+)', where:
                 // int(match.group(1)) = status_code
                 // int(match.group(2)) = content_length
                 self.respond(&str_format!(
                     fixedstr::str64,
-                    "HTTPACTION:asdf1337,foobar{},nakki{}\r\n",
+                    "AT+HTTPACTION=0\r\r\n+HTTPACTION: 0,{},{}\r\n",
                     status_code,
                     body.len(),
                 ));
