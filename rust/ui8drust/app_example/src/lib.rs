@@ -4,6 +4,8 @@
 // Example: "http://example.com/report?id=test&"
 const base_url: &str = env!("BASE_URL");
 
+const CHARGE_COMPLETE_VOLTAGE_SETTING_MV: u16 = 4160; // Should be divisible by 20
+
 use common::*;
 
 pub mod can_simulator;
@@ -52,9 +54,11 @@ enum ParameterId {
     AcVoltage = 23,
     PmState = 24,
     PmCr = 25,
+    BmsChargeCompleteVoltageSetting = 26,
+    Ipdm1ChargeCompleteVoltageSetting = 27,
 }
 
-static mut PARAMETERS: [Parameter<ParameterId>; 26] = [
+static mut PARAMETERS: [Parameter<ParameterId>; 28] = [
     Parameter {
         id: ParameterId::TicksMs,
         display_name: "Ticks",
@@ -474,6 +478,44 @@ static mut PARAMETERS: [Parameter<ParameterId>; 26] = [
         }),
         report_map: Some(ReportMap {
             name: "pmcr",
+            decimals: 0,
+            scale: 1.0,
+        }),
+        update_timestamp: 0,
+    },
+    Parameter {
+        id: ParameterId::BmsChargeCompleteVoltageSetting,
+        display_name: "BmsChgCompV",
+        value: f32::NAN,
+        decimals: 0,
+        unit: "mV",
+        can_map: Some(CanMap {
+            id: bxcan::Id::Standard(StandardId::new(0x034).unwrap()),
+            bits: CanBitSelection::Function(|data: &[u8]| -> f32 {
+                (((data[0] as u16) << 8) | data[1] as u16) as f32
+            }),
+            scale: 1.0,
+        }),
+        report_map: Some(ReportMap {
+            name: "bccv",
+            decimals: 0,
+            scale: 1.0,
+        }),
+        update_timestamp: 0,
+    },
+    Parameter {
+        id: ParameterId::Ipdm1ChargeCompleteVoltageSetting,
+        display_name: "Ipdm1ChgCompV",
+        value: f32::NAN,
+        decimals: 0,
+        unit: "mV",
+        can_map: Some(CanMap {
+            id: bxcan::Id::Standard(StandardId::new(0x550).unwrap()),
+            bits: CanBitSelection::Uint8(4),
+            scale: 20.0,
+        }),
+        report_map: Some(ReportMap {
+            name: "i1ccv",
             decimals: 0,
             scale: 1.0,
         }),
@@ -1039,6 +1081,7 @@ pub struct MainState {
     last_hvac_power_output_wanted_off_millis: u64,
     sim7600_power_cycle_start_timestamp: u64,
     sim7600_power_cycle_error_counter: u32,
+    last_charge_config_millis: u64,
 }
 
 impl MainState {
@@ -1056,6 +1099,7 @@ impl MainState {
             last_hvac_power_output_wanted_off_millis: 0,
             sim7600_power_cycle_start_timestamp: 0,
             sim7600_power_cycle_error_counter: 0,
+            last_charge_config_millis: 0,
         }
     }
 
@@ -1074,6 +1118,8 @@ impl MainState {
         self.update_view(hw);
 
         self.update_hvac_power(hw);
+
+        self.update_charge_config(hw);
 
         self.update_http(hw);
 
@@ -1115,6 +1161,18 @@ impl MainState {
         ((views[self.current_view]).on_update)(self.update_counter == 0, self, hw);
     }
 
+    fn send_setting_frame(&mut self, hw: &mut dyn HardwareInterface,
+            frame_id: u16, setting_id: u8, old_value: u16, new_value: u16) {
+        let mut data: [u8; 8] = [0; 8];
+        data[0] = setting_id;
+        data[1..3].copy_from_slice(&old_value.to_be_bytes());
+        data[3..5].copy_from_slice(&new_value.to_be_bytes());
+        hw.send_can(bxcan::Frame::new_data(
+            bxcan::StandardId::new(frame_id).unwrap(),
+            bxcan::Data::new(&data).unwrap()
+        ));
+    }
+
     fn update_hvac_power(&mut self, hw: &mut dyn HardwareInterface) {
         let mut wanted_output_state = false;
         if get_parameter(ParameterId::HvacCountdown).value >= 0.0 {
@@ -1142,16 +1200,26 @@ impl MainState {
                     || ms_since_last_hvac_power_output_wanted_off < 0);
             hw.set_digital_output(DigitalOutput::Wakeup, power_output_state);
 
-            hw.send_can(bxcan::Frame::new_data(
-                bxcan::StandardId::new(0x570).unwrap(),
-                if get_parameter(ParameterId::HvacCountdown).value > 0.0 {
-                    // Request ipdm1 to turn on the heater and pump
-                    bxcan::Data::new(b"\x02\x00\x00\x00\x01\x00\x00\x00").unwrap()
-                } else {
-                    // Request ipdm1 to turn off the heater and pump
-                    bxcan::Data::new(b"\x02\x00\x00\x00\x00\x00\x00\x00").unwrap()
-                },
-            ));
+            if get_parameter(ParameterId::HvacCountdown).value > 0.0 {
+                // Request ipdm1 to turn on the heater and pump
+                self.send_setting_frame(hw, 0x570, 2, 0, 1);
+            } else {
+                // Request ipdm1 to turn off the heater and pump
+                self.send_setting_frame(hw, 0x570, 2, 0, 0);
+            }
+        }
+    }
+
+    fn update_charge_config(&mut self, hw: &mut dyn HardwareInterface) {
+        if hw.millis() - self.last_charge_config_millis < 2000 {
+            return;
+        }
+        self.last_charge_config_millis = hw.millis();
+
+        if get_parameter(ParameterId::Ipdm1ChargeCompleteVoltageSetting).value as u16 != CHARGE_COMPLETE_VOLTAGE_SETTING_MV {
+            self.send_setting_frame(hw, 0x570, 1, get_parameter(
+                    ParameterId::Ipdm1ChargeCompleteVoltageSetting).value as u16 / 20,
+                CHARGE_COMPLETE_VOLTAGE_SETTING_MV / 20);
         }
     }
 

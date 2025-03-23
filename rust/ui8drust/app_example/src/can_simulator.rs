@@ -42,7 +42,7 @@ impl CanSimulator {
             // ipdm1 (includes pm state and pm contactor reason)
             self.txbuf.push(bxcan::Frame::new_data(
                 bxcan::StandardId::new(0x550).unwrap(),
-                bxcan::Data::new(b"\x41\x00\x00\x32\xce\x15\x00\xe6").unwrap(),
+                bxcan::Data::new(b"\x41\x00\x00\x32\xd0\x15\x00\xe6").unwrap(),
             ));
         }
         if self.i % 27 == 4 {
