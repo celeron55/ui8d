@@ -126,7 +126,7 @@ pub struct Parameter<'a, ID> {
     pub unit: &'a str,
     pub can_map: Option<CanMap>,
     pub report_map: Option<ReportMap<'a>>,
-    // TODO: Timeout
+    pub update_timestamp: u64,
 }
 
 impl<'a, ID> Parameter<'a, ID> {
@@ -147,7 +147,12 @@ impl<'a, ID> Parameter<'a, ID> {
             unit: unit,
             can_map: can_map,
             report_map: report_map,
+            update_timestamp: 0,
         }
+    }
+    pub fn set_value(&mut self, value: f32, millis: u64) {
+        self.value = value;
+        self.update_timestamp = millis;
     }
 }
 
