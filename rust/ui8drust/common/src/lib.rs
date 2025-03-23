@@ -64,7 +64,7 @@ pub enum AnalogInput {
     AuxVoltage,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum DigitalOutput {
     Wakeup,
     Pwmout1, // TODO: Convert to actual PWM output

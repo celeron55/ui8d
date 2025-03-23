@@ -32,6 +32,7 @@ use ringbuffer::{ConstGenericRingBuffer, RingBuffer};
 use std::f64::consts::PI;
 //use nalgebra::{Vector2, Point2, UnitComplex, Rotation2};
 use arrayvec::ArrayString;
+use std::collections::HashMap;
 
 const FPS: u64 = 50;
 const UPS: u64 = 50;
@@ -47,6 +48,7 @@ struct HardwareImplementation {
     sim7600sim: Sim7600Simulator,
     sim7600driver: Sim7600Driver,
     can_sim: CanSimulator,
+    digital_output_states: HashMap<DigitalOutput, bool>,
 }
 
 impl HardwareImplementation {
@@ -57,6 +59,7 @@ impl HardwareImplementation {
             sim7600sim: Sim7600Simulator::new(),
             sim7600driver: Sim7600Driver::new(),
             can_sim: CanSimulator::new(),
+            digital_output_states: HashMap::new(),
         }
     }
 }
@@ -126,8 +129,14 @@ impl HardwareInterface for HardwareImplementation {
     }
 
     fn set_digital_output(&mut self, output: DigitalOutput, value: bool) {
-        info!("set_digital_output(): {:?}: {:?}", output, value);
-        // TODO: Show somewhere
+        if let Some(old_value) = self.digital_output_states.get(&output) {
+            if value != *old_value {
+                info!("set_digital_output(): {:?}: {:?}", output, value);
+            }
+        } else {
+            info!("set_digital_output(): {:?}: {:?}", output, value);
+        }
+        self.digital_output_states.insert(output, value);
     }
 }
 
