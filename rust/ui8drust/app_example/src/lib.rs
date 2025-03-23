@@ -876,6 +876,7 @@ static main_view: View = View {
         if redraw {
             draw_brand_background(hw);
             draw_view_number(state.current_view, hw);
+            draw_button_action(0, "Reboot", false, hw);
             //draw_button_action(0, "Cruis", false, hw);
             //draw_button_action(1, "BHeat", true, hw);
             {
@@ -990,6 +991,10 @@ static main_view: View = View {
                 hw: &mut dyn HardwareInterface|
      -> bool {
         match event {
+            ButtonEvent::ButtonPress(Button::Button1) => {
+                hw.reboot();
+                return true;
+            }
             ButtonEvent::ButtonPress(Button::Button2) => {
                 return false;
             }
@@ -1383,7 +1388,10 @@ impl MainState {
     }
 
     pub fn on_console_command(&mut self, command: &str, hw: &mut dyn HardwareInterface) -> bool {
-        if command == "dfu" {
+        if command == "reboot" {
+            hw.reboot();
+            true
+        } else if command == "dfu" {
             hw.activate_dfu();
             true
         } else if command == "panic" {

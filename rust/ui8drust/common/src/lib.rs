@@ -85,6 +85,7 @@ pub trait HardwareInterface {
         alignment: eg::text::Alignment,
     );
 
+    fn reboot(&mut self);
     fn activate_dfu(&mut self);
 
     fn http_get_start(&mut self, url: &str);

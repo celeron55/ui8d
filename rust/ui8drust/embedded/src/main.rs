@@ -272,6 +272,10 @@ impl HardwareInterface for HardwareImplementation {
             .unwrap();
     }
 
+    fn reboot(&mut self) {
+        cortex_m::peripheral::SCB::sys_reset();
+    }
+
     fn activate_dfu(&mut self) {
         self.boot0_control_pin.set_high();
         long_busywait();
@@ -842,6 +846,7 @@ mod rtic_app {
                 cx.shared
                     .can_tx_buf
                     .lock(|can_tx_buf| can_tx_buf.push(frame));
+                pac::NVIC::pend(pac::Interrupt::CAN1_TX);
             }
 
             // Handle SIM7600 driver buffers

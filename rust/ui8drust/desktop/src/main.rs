@@ -101,6 +101,10 @@ impl HardwareInterface for HardwareImplementation {
             .unwrap();
     }
 
+    fn reboot(&mut self) {
+        warn!("reboot() does nothing in desktop mode");
+    }
+
     fn activate_dfu(&mut self) {
         warn!("activate_dfu() does nothing in desktop mode");
     }
