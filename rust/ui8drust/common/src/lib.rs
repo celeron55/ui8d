@@ -62,6 +62,7 @@ pub enum HttpUpdateStatus {
 #[derive(Debug, Clone, Copy)]
 pub enum AnalogInput {
     AuxVoltage,
+    PcbT,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

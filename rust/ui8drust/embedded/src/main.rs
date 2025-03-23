@@ -247,6 +247,7 @@ struct HardwareImplementation {
     sim7600driver: Sim7600Driver,
     can_tx_buf: ConstGenericRingBuffer<bxcan::Frame, 10>,
     adc_result_vbat: f32,
+    adc_result_tpcb: f32,
 }
 
 impl HardwareInterface for HardwareImplementation {
@@ -299,6 +300,7 @@ impl HardwareInterface for HardwareImplementation {
     fn get_analog_input(&mut self, input: AnalogInput) -> f32 {
         match input {
             AnalogInput::AuxVoltage => self.adc_result_vbat,
+            AnalogInput::PcbT => self.adc_result_tpcb,
             _ => f32::NAN,
         }
     }
@@ -348,6 +350,7 @@ mod rtic_app {
         button_event_queue: ConstGenericRingBuffer<ButtonEvent, 10>,
         adc_result_ldr: u16,
         adc_result_vbat: f32,
+        adc_result_tpcb: f32,
     }
 
     #[local]
@@ -365,6 +368,7 @@ mod rtic_app {
         adc_pa1: gpio::Pin<'A', 1, gpio::Analog>,
         adc_pa2: gpio::Pin<'A', 2, gpio::Analog>,
         adc_pa3: gpio::Pin<'A', 3, gpio::Analog>,
+        adc_pb1: gpio::Pin<'B', 1, gpio::Analog>,
         // Digital input pins
         // Output pins
         // (See HardwareImplementation)
@@ -656,6 +660,7 @@ mod rtic_app {
         let adc_pa1 = gpioa.pa1.into_analog(); // Version detection
         let adc_pa2 = gpioa.pa2.into_analog(); // Vbat
         let adc_pa3 = gpioa.pa3.into_analog(); // LDR
+        let adc_pb1 = gpiob.pb1.into_analog(); // PcbT
                                                // TODO: More pins
 
         let adc_config = AdcConfig::default()
@@ -714,6 +719,7 @@ mod rtic_app {
             sim7600driver: Sim7600Driver::new(),
             can_tx_buf: ConstGenericRingBuffer::new(),
             adc_result_vbat: f32::NAN,
+            adc_result_tpcb: f32::NAN,
         };
 
         // Schedule tasks
@@ -744,6 +750,7 @@ mod rtic_app {
                 button_event_queue: ConstGenericRingBuffer::new(),
                 adc_result_ldr: 0,
                 adc_result_vbat: 0.0,
+                adc_result_tpcb: 0.0,
             },
             Local {
                 usart1_rx: usart1_rx,
@@ -758,6 +765,7 @@ mod rtic_app {
                 adc_pa1: adc_pa1,
                 adc_pa2: adc_pa2,
                 adc_pa3: adc_pa3,
+                adc_pb1: adc_pb1,
                 tim4_pwm: tim4_pwm,
                 last_backlight_pwm: 0.2,
                 hw,
@@ -789,6 +797,7 @@ mod rtic_app {
             button_event_queue,
             adc_result_ldr,
             adc_result_vbat,
+            adc_result_tpcb,
         ],
         local = [
             command_accumulator,
@@ -803,6 +812,7 @@ mod rtic_app {
         loop {
             // Update values
             cx.local.hw.adc_result_vbat = cx.shared.adc_result_vbat.lock(|v| *v);
+            cx.local.hw.adc_result_tpcb = cx.shared.adc_result_tpcb.lock(|v| *v);
 
             // Set backlight PWM based on LDR brightness measurement
             let adc_result_ldr = cx.shared.adc_result_ldr.lock(|v| *v);
@@ -887,12 +897,14 @@ mod rtic_app {
         shared = [
             adc_result_ldr,
             adc_result_vbat,
+            adc_result_tpcb,
         ],
         local = [
             adc1,
             adc_pa1,
             adc_pa2,
             adc_pa3,
+            adc_pb1,
         ]
     )]
     async fn adc_task(mut cx: adc_task::Context) {
@@ -918,6 +930,19 @@ mod rtic_app {
                 .convert(cx.local.adc_pa3, SampleTime::Cycles_480);
 
             cx.shared.adc_result_ldr.lock(|v| *v = adc_result_ldr);
+
+            // Correct conversion from ADC to DegC (10k NTC thermistor with 10k
+            // pull-up resistor)
+            let adc_value = cx.local.adc1.convert(cx.local.adc_pb1, SampleTime::Cycles_480) as f32;
+            let r_ntc = 10000.0 * adc_value / (4095.0 - adc_value);
+            let ln_r = (r_ntc / 10000.0).ln();
+            let t_inv = ln_r / 3950.0 + 1.0 / 298.15;
+            let t_kelvin = 1.0 / t_inv;
+            let t_celsius = t_kelvin - 273.15;
+            let adc_result_tpcb = t_celsius;
+
+            // Assign with lowpass
+            cx.shared.adc_result_tpcb.lock(|v| *v = *v * 0.98 + adc_result_tpcb * 0.02);
 
             Systick::delay(20.millis()).await;
         }
