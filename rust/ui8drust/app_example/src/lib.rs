@@ -1190,7 +1190,7 @@ impl MainState {
                         reason == HttpFailReason::InternalError ||
                         reason == HttpFailReason::Unknown {
                     self.sim7600_power_cycle_error_counter += 1;
-                    if self.sim7600_power_cycle_error_counter >= 4 {
+                    if self.sim7600_power_cycle_error_counter >= 10 {
                         info!("-!- Power cycling SIM7600");
                         self.sim7600_power_cycle_error_counter = 0;
                         self.sim7600_power_cycle_start_timestamp = hw.millis();
