@@ -335,7 +335,7 @@ static REQUEST_STEPS: [RequestStep; 15] = [
     RequestStep {
         command: "(AT+HTTPREAD?)",
         timeout_ms: 2000,
-        max_retry_count: 10,
+        max_retry_count: 15,
         accept_response: &[],
         send_command: |_step: &RequestStep,
                        request: &mut RequestStatus,
