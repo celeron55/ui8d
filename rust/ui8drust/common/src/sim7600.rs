@@ -160,6 +160,13 @@ static REQUEST_STEPS: [RequestStep; 15] = [
                 // The modem is probably trying to, but the signal isn't very
                 // good
                 HttpUpdateStatus::Processing
+            } else if *driver.rxbuf == *"AT+CGREG?\r\r\n+CGREG: 0,3\r\n\r\nOK\r\n" {
+                // 0,3 = Network Registration Denied
+                // The modem is probably trying to register, but the signal
+                // isn't very good. Maybe the tower is putting it in some sort
+                // of cooldown because it's so flaky. Anyway, all we can really
+                // do is wait.
+                HttpUpdateStatus::Processing
             } else if driver.rxbuf.len() > 0 {
                 // The result is something we don't like. Bail out if we have
                 // retried many times already
