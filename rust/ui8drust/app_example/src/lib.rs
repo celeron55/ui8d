@@ -692,7 +692,11 @@ pub fn draw_parameter_raw(
     hw: &mut dyn HardwareInterface,
 ) {
     let mut text: ArrayString<10> = ArrayString::new();
-    text.push_str(&str_format!(fixedstr::str16, "{: >6.*}", decimals, value));
+    if value.is_nan() {
+        text.push_str("     -");
+    } else {
+        text.push_str(&str_format!(fixedstr::str16, "{: >6.*}", decimals, value));
+    }
 
     draw_parameter_text(display_name, &text, unit, y, redraw, hw);
 }
@@ -710,10 +714,18 @@ pub fn draw_parameter_dual_raw(
     hw: &mut dyn HardwareInterface,
 ) {
     let mut text1: ArrayString<10> = ArrayString::new();
-    text1.push_str(&str_format!(fixedstr::str16, "{: >4.*}", decimals1, value1));
+    if value1.is_nan() {
+        text1.push_str("   -");
+    } else {
+        text1.push_str(&str_format!(fixedstr::str16, "{: >4.*}", decimals1, value1));
+    }
 
     let mut text2: ArrayString<10> = ArrayString::new();
-    text2.push_str(&str_format!(fixedstr::str16, "{: >4.*}", decimals2, value2));
+    if value2.is_nan() {
+        text2.push_str("   -");
+    } else {
+        text2.push_str(&str_format!(fixedstr::str16, "{: >4.*}", decimals2, value2));
+    }
 
     draw_parameter_dual_text(display_name, &text1, unit1, &text2, unit2, y, redraw, hw);
 }
