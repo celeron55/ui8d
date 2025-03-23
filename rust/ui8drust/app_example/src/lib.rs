@@ -50,15 +50,11 @@ enum ParameterId {
     ObcDcv = 21,
     ObcDcc = 22,
     AcVoltage = 23,
-    PdmState = 24,
-    OutlanderHeaterT = 25,
-    OutlanderHeaterHeating = 26,
-    OutlanderHeaterPowerPercent = 27,
-    CruiseActive = 28,
-    CruiseRequested = 29,
+    PmState = 24,
+    PmCr = 25,
 }
 
-static mut PARAMETERS: [Parameter<ParameterId>; 30] = [
+static mut PARAMETERS: [Parameter<ParameterId>; 26] = [
     Parameter {
         id: ParameterId::TicksMs,
         display_name: "Ticks",
@@ -71,6 +67,7 @@ static mut PARAMETERS: [Parameter<ParameterId>; 30] = [
             decimals: 0,
             scale: 0.001,
         }),
+        update_timestamp: 0,
     },
     Parameter {
         id: ParameterId::AuxVoltage,
@@ -84,6 +81,7 @@ static mut PARAMETERS: [Parameter<ParameterId>; 30] = [
             decimals: 1,
             scale: 1.0,
         }),
+        update_timestamp: 0,
     },
     Parameter {
         id: ParameterId::BatteryTMin,
@@ -92,7 +90,7 @@ static mut PARAMETERS: [Parameter<ParameterId>; 30] = [
         decimals: 0,
         unit: "degC",
         can_map: Some(CanMap {
-            id: bxcan::Id::Standard(StandardId::new(0x101).unwrap()),
+            id: bxcan::Id::Standard(StandardId::new(0x031).unwrap()),
             bits: CanBitSelection::Int8(3),
             scale: 1.0,
         }),
@@ -101,6 +99,7 @@ static mut PARAMETERS: [Parameter<ParameterId>; 30] = [
             decimals: 0,
             scale: 1.0,
         }),
+        update_timestamp: 0,
     },
     Parameter {
         id: ParameterId::BatteryTMax,
@@ -109,7 +108,7 @@ static mut PARAMETERS: [Parameter<ParameterId>; 30] = [
         decimals: 0,
         unit: "degC",
         can_map: Some(CanMap {
-            id: bxcan::Id::Standard(StandardId::new(0x101).unwrap()),
+            id: bxcan::Id::Standard(StandardId::new(0x031).unwrap()),
             bits: CanBitSelection::Int8(4),
             scale: 1.0,
         }),
@@ -118,6 +117,7 @@ static mut PARAMETERS: [Parameter<ParameterId>; 30] = [
             decimals: 0,
             scale: 1.0,
         }),
+        update_timestamp: 0,
     },
     Parameter {
         id: ParameterId::BatteryVMin,
@@ -126,7 +126,7 @@ static mut PARAMETERS: [Parameter<ParameterId>; 30] = [
         decimals: 2,
         unit: "V",
         can_map: Some(CanMap {
-            id: bxcan::Id::Standard(StandardId::new(0x101).unwrap()),
+            id: bxcan::Id::Standard(StandardId::new(0x031).unwrap()),
             bits: CanBitSelection::Function(|data: &[u8]| -> f32 {
                 (((data[0] as u16) << 4) | ((data[1] as u16) >> 4)) as f32
             }),
@@ -137,6 +137,7 @@ static mut PARAMETERS: [Parameter<ParameterId>; 30] = [
             decimals: 0,
             scale: 100.0,
         }),
+        update_timestamp: 0,
     },
     Parameter {
         id: ParameterId::BatteryVMax,
@@ -145,7 +146,7 @@ static mut PARAMETERS: [Parameter<ParameterId>; 30] = [
         decimals: 2,
         unit: "V",
         can_map: Some(CanMap {
-            id: bxcan::Id::Standard(StandardId::new(0x101).unwrap()),
+            id: bxcan::Id::Standard(StandardId::new(0x031).unwrap()),
             bits: CanBitSelection::Function(|data: &[u8]| -> f32 {
                 ((((data[1] & 0x0f) as u16) << 8) | data[2] as u16) as f32
             }),
@@ -156,6 +157,7 @@ static mut PARAMETERS: [Parameter<ParameterId>; 30] = [
             decimals: 0,
             scale: 100.0,
         }),
+        update_timestamp: 0,
     },
     Parameter {
         id: ParameterId::Soc,
@@ -164,7 +166,7 @@ static mut PARAMETERS: [Parameter<ParameterId>; 30] = [
         decimals: 0,
         unit: "%",
         can_map: Some(CanMap {
-            id: bxcan::Id::Standard(StandardId::new(0x102).unwrap()),
+            id: bxcan::Id::Standard(StandardId::new(0x032).unwrap()),
             bits: CanBitSelection::Uint8(6),
             scale: 100.0 / 255.0,
         }),
@@ -173,6 +175,7 @@ static mut PARAMETERS: [Parameter<ParameterId>; 30] = [
             decimals: 0,
             scale: 2.55,
         }),
+        update_timestamp: 0,
     },
     Parameter {
         id: ParameterId::RangeKm,
@@ -182,6 +185,7 @@ static mut PARAMETERS: [Parameter<ParameterId>; 30] = [
         unit: "km",
         can_map: None,
         report_map: None,
+        update_timestamp: 0,
     },
     Parameter {
         id: ParameterId::AllowedChargePower,
@@ -191,6 +195,7 @@ static mut PARAMETERS: [Parameter<ParameterId>; 30] = [
         unit: "kW",
         can_map: None,
         report_map: None,
+        update_timestamp: 0,
     },
     Parameter {
         id: ParameterId::TripKm,
@@ -200,6 +205,7 @@ static mut PARAMETERS: [Parameter<ParameterId>; 30] = [
         unit: "km",
         can_map: None,
         report_map: None,
+        update_timestamp: 0,
     },
     Parameter {
         id: ParameterId::TripConsumption,
@@ -209,6 +215,7 @@ static mut PARAMETERS: [Parameter<ParameterId>; 30] = [
         unit: "Wh/km",
         can_map: None,
         report_map: None,
+        update_timestamp: 0,
     },
     Parameter {
         id: ParameterId::RecentKm,
@@ -218,6 +225,7 @@ static mut PARAMETERS: [Parameter<ParameterId>; 30] = [
         unit: "km",
         can_map: None,
         report_map: None,
+        update_timestamp: 0,
     },
     Parameter {
         id: ParameterId::RecentConsumption,
@@ -227,6 +235,7 @@ static mut PARAMETERS: [Parameter<ParameterId>; 30] = [
         unit: "Wh/km",
         can_map: None,
         report_map: None,
+        update_timestamp: 0,
     },
     Parameter {
         id: ParameterId::HvacCountdown,
@@ -236,198 +245,11 @@ static mut PARAMETERS: [Parameter<ParameterId>; 30] = [
         unit: "s",
         can_map: None,
         report_map: None,
+        update_timestamp: 0,
     },
     Parameter {
         id: ParameterId::HeaterT,
         display_name: "Heater T",
-        value: f32::NAN,
-        decimals: 0,
-        unit: "degC",
-        can_map: Some(CanMap {
-            id: bxcan::Id::Standard(StandardId::new(0x400).unwrap()),
-            bits: CanBitSelection::Int8(1),
-            scale: 1.0,
-        }),
-        report_map: Some(ReportMap {
-            name: "ht",
-            decimals: 0,
-            scale: 1.0,
-        }),
-    },
-    Parameter {
-        id: ParameterId::HeaterHeating,
-        display_name: "Heater heating",
-        value: f32::NAN,
-        decimals: 0,
-        unit: "",
-        can_map: Some(CanMap {
-            id: bxcan::Id::Standard(StandardId::new(0x200).unwrap()),
-            bits: CanBitSelection::Bit(2),
-            scale: 1.0,
-        }),
-        report_map: None,
-    },
-    Parameter {
-        id: ParameterId::HeaterPowerPercent,
-        display_name: "Heater power",
-        value: f32::NAN,
-        decimals: 0,
-        unit: "%",
-        can_map: Some(CanMap {
-            id: bxcan::Id::Standard(StandardId::new(0x200).unwrap()),
-            bits: CanBitSelection::Bit(2),
-            scale: 100.0,
-        }),
-        report_map: Some(ReportMap {
-            name: "he",
-            decimals: 0,
-            scale: 1.0,
-        }),
-    },
-    Parameter {
-        id: ParameterId::CabinT,
-        display_name: "CabinT",
-        value: f32::NAN,
-        decimals: 1,
-        unit: "degC",
-        can_map: None,
-        report_map: Some(ReportMap {
-            name: "cabin_t",
-            decimals: 1,
-            scale: 1.0,
-        }),
-    },
-    Parameter {
-        id: ParameterId::MainContactor,
-        display_name: "Main contactor",
-        value: f32::NAN,
-        decimals: 0,
-        unit: "",
-        can_map: Some(CanMap {
-            id: bxcan::Id::Standard(StandardId::new(0x100).unwrap()),
-            bits: CanBitSelection::Bit(2),
-            scale: 1.0,
-        }),
-        report_map: Some(ReportMap {
-            name: "mc",
-            decimals: 0,
-            scale: 1.0,
-        }),
-    },
-    Parameter {
-        id: ParameterId::PrechargeFailed,
-        display_name: "Precharge failed",
-        value: f32::NAN,
-        decimals: 0,
-        unit: "",
-        can_map: Some(CanMap {
-            id: bxcan::Id::Standard(StandardId::new(0x100).unwrap()),
-            bits: CanBitSelection::Bit(6),
-            scale: 1.0,
-        }),
-        report_map: Some(ReportMap {
-            name: "pchg_f",
-            decimals: 0,
-            scale: 1.0,
-        }),
-    },
-    Parameter {
-        id: ParameterId::Balancing,
-        display_name: "Balancing",
-        value: f32::NAN,
-        decimals: 0,
-        unit: "",
-        can_map: Some(CanMap {
-            id: bxcan::Id::Standard(StandardId::new(0x101).unwrap()),
-            bits: CanBitSelection::Bit(5 * 8 + 0),
-            scale: 1.0,
-        }),
-        report_map: Some(ReportMap {
-            name: "b",
-            decimals: 0,
-            scale: 1.0,
-        }),
-    },
-    Parameter {
-        id: ParameterId::ObcDcv,
-        display_name: "OBC V DC",
-        value: f32::NAN,
-        decimals: 0,
-        unit: "V",
-        can_map: Some(CanMap {
-            id: bxcan::Id::Standard(StandardId::new(0x200).unwrap()),
-            bits: CanBitSelection::Function(|data: &[u8]| -> f32 {
-                ((data[1] as u16) << 8) as f32 + data[2] as f32
-            }),
-            scale: 0.1,
-        }),
-        report_map: Some(ReportMap {
-            name: "pv",
-            decimals: 0,
-            scale: 10.0,
-        }),
-    },
-    Parameter {
-        id: ParameterId::ObcDcc,
-        display_name: "OBC A DC",
-        value: f32::NAN,
-        decimals: 1,
-        unit: "A",
-        can_map: Some(CanMap {
-            id: bxcan::Id::Standard(StandardId::new(0x200).unwrap()),
-            bits: CanBitSelection::Function(|data: &[u8]| -> f32 {
-                // TODO: Is this DC or AC current?
-                // pdm_status.charge_current_Ax10
-                ((data[3] as u16) << 8) as f32 + data[4] as f32
-            }),
-            scale: 0.1,
-        }),
-        report_map: Some(ReportMap {
-            name: "pc",
-            decimals: 0,
-            scale: 10.0,
-        }),
-    },
-    Parameter {
-        id: ParameterId::AcVoltage,
-        display_name: "AC voltage",
-        value: f32::NAN,
-        decimals: 0,
-        unit: "V",
-        can_map: Some(CanMap {
-            id: bxcan::Id::Standard(StandardId::new(0x202).unwrap()),
-            bits: CanBitSelection::Function(|data: &[u8]| -> f32 {
-                // pdm_status.duration_of_ac_power_available_minutes
-                ((data[1] as u16) << 8) as f32 + data[2] as f32
-            }),
-            scale: 1.0,
-        }),
-        report_map: Some(ReportMap {
-            name: "ac",
-            decimals: 0,
-            scale: 1.0,
-        }),
-    },
-    Parameter {
-        id: ParameterId::PdmState,
-        display_name: "PdmState",
-        value: f32::NAN,
-        decimals: 0,
-        unit: "",
-        can_map: Some(CanMap {
-            id: bxcan::Id::Standard(StandardId::new(0x203).unwrap()),
-            bits: CanBitSelection::Function(|data: &[u8]| -> f32 { (data[0] >> 4) as f32 }),
-            scale: 1.0,
-        }),
-        report_map: Some(ReportMap {
-            name: "pdms",
-            decimals: 0,
-            scale: 1.0,
-        }),
-    },
-    Parameter {
-        id: ParameterId::OutlanderHeaterT,
-        display_name: "OutlH T",
         value: f32::NAN,
         decimals: 0,
         unit: "degC",
@@ -440,11 +262,16 @@ static mut PARAMETERS: [Parameter<ParameterId>; 30] = [
             }),
             scale: 1.0,
         }),
-        report_map: None,
+        report_map: Some(ReportMap {
+            name: "ht",
+            decimals: 0,
+            scale: 1.0,
+        }),
+        update_timestamp: 0,
     },
     Parameter {
-        id: ParameterId::OutlanderHeaterHeating,
-        display_name: "OutlH heating",
+        id: ParameterId::HeaterHeating,
+        display_name: "Heater heating",
         value: f32::NAN,
         decimals: 0,
         unit: "",
@@ -464,10 +291,11 @@ static mut PARAMETERS: [Parameter<ParameterId>; 30] = [
             decimals: 0,
             scale: 1.0,
         }),
+        update_timestamp: 0,
     },
     Parameter {
-        id: ParameterId::OutlanderHeaterPowerPercent,
-        display_name: "OutlH power",
+        id: ParameterId::HeaterPowerPercent,
+        display_name: "Heater power",
         value: f32::NAN,
         decimals: 0,
         unit: "%",
@@ -484,37 +312,172 @@ static mut PARAMETERS: [Parameter<ParameterId>; 30] = [
             }),
             scale: 1.0,
         }),
-        report_map: None,
+        report_map: Some(ReportMap {
+            name: "he",
+            decimals: 0,
+            scale: 1.0,
+        }),
+        update_timestamp: 0,
     },
     Parameter {
-        id: ParameterId::CruiseActive,
-        display_name: "Cruise active",
+        id: ParameterId::CabinT,
+        display_name: "CabinT",
+        value: f32::NAN,
+        decimals: 1,
+        unit: "degC",
+        can_map: None,
+        report_map: Some(ReportMap {
+            name: "cabin_t",
+            decimals: 1,
+            scale: 1.0,
+        }),
+        update_timestamp: 0,
+    },
+    Parameter {
+        id: ParameterId::MainContactor,
+        display_name: "Main contactor",
         value: f32::NAN,
         decimals: 0,
         unit: "",
         can_map: Some(CanMap {
-            id: bxcan::Id::Standard(StandardId::new(0x300).unwrap()),
+            id: bxcan::Id::Standard(StandardId::new(0x030).unwrap()),
             bits: CanBitSelection::Bit(2),
             scale: 1.0,
         }),
         report_map: Some(ReportMap {
-            name: "cru",
+            name: "mc",
             decimals: 0,
             scale: 1.0,
         }),
+        update_timestamp: 0,
     },
     Parameter {
-        id: ParameterId::CruiseRequested,
-        display_name: "Cruise requested",
-        value: 0.0,
+        id: ParameterId::PrechargeFailed,
+        display_name: "Precharge failed",
+        value: f32::NAN,
         decimals: 0,
         unit: "",
-        can_map: None,
+        can_map: Some(CanMap {
+            id: bxcan::Id::Standard(StandardId::new(0x030).unwrap()),
+            bits: CanBitSelection::Bit(6),
+            scale: 1.0,
+        }),
         report_map: Some(ReportMap {
-            name: "crur",
+            name: "pchg_f",
             decimals: 0,
             scale: 1.0,
         }),
+        update_timestamp: 0,
+    },
+    Parameter {
+        id: ParameterId::Balancing,
+        display_name: "Balancing",
+        value: f32::NAN,
+        decimals: 0,
+        unit: "",
+        can_map: Some(CanMap {
+            id: bxcan::Id::Standard(StandardId::new(0x031).unwrap()),
+            bits: CanBitSelection::Bit(5 * 8 + 0),
+            scale: 1.0,
+        }),
+        report_map: Some(ReportMap {
+            name: "b",
+            decimals: 0,
+            scale: 1.0,
+        }),
+        update_timestamp: 0,
+    },
+    Parameter {
+        id: ParameterId::ObcDcv,
+        display_name: "OBC V DC",
+        value: f32::NAN,
+        decimals: 0,
+        unit: "V",
+        can_map: Some(CanMap {
+            id: bxcan::Id::Standard(StandardId::new(0x389).unwrap()),
+            bits: CanBitSelection::Uint8(0),
+            scale: 2.0,
+        }),
+        report_map: Some(ReportMap {
+            name: "pv",
+            decimals: 0,
+            scale: 10.0,
+        }),
+        update_timestamp: 0,
+    },
+    Parameter {
+        id: ParameterId::ObcDcc,
+        display_name: "OBC A DC",
+        value: f32::NAN,
+        decimals: 1,
+        unit: "A",
+        can_map: Some(CanMap {
+            id: bxcan::Id::Standard(StandardId::new(0x389).unwrap()),
+            bits: CanBitSelection::Uint8(2),
+            scale: 0.1,
+        }),
+        report_map: Some(ReportMap {
+            name: "pc",
+            decimals: 0,
+            scale: 10.0,
+        }),
+        update_timestamp: 0,
+    },
+    Parameter {
+        id: ParameterId::AcVoltage,
+        display_name: "AC voltage",
+        value: f32::NAN,
+        decimals: 0,
+        unit: "V",
+        can_map: Some(CanMap {
+            id: bxcan::Id::Standard(StandardId::new(0x389).unwrap()),
+            bits: CanBitSelection::Uint8(1),
+            scale: 1.0,
+        }),
+        report_map: Some(ReportMap {
+            name: "ac",
+            decimals: 0,
+            scale: 1.0,
+        }),
+        update_timestamp: 0,
+    },
+    Parameter {
+        id: ParameterId::PmState,
+        display_name: "PmState",
+        value: f32::NAN,
+        decimals: 0,
+        unit: "",
+        can_map: Some(CanMap {
+            id: bxcan::Id::Standard(StandardId::new(0x550).unwrap()),
+            bits: CanBitSelection::Function(|data: &[u8]| -> f32 { (data[5] & 0x0f) as f32 }),
+            scale: 1.0,
+        }),
+        report_map: Some(ReportMap {
+            name: "pms",
+            decimals: 0,
+            scale: 1.0,
+        }),
+        update_timestamp: 0,
+    },
+    Parameter {
+        id: ParameterId::PmCr,
+        display_name: "PmCr",
+        value: f32::NAN,
+        decimals: 0,
+        unit: "",
+        can_map: Some(CanMap {
+            id: bxcan::Id::Standard(StandardId::new(0x550).unwrap()),
+            bits: CanBitSelection::Function(|data: &[u8]| -> f32 {
+                ((data[5] & 0xf0) >> 4) as f32
+            }),
+            scale: 1.0,
+        }),
+        report_map: Some(ReportMap {
+            name: "pmcr",
+            decimals: 0,
+            scale: 1.0,
+        }),
+        update_timestamp: 0,
     },
 ];
 
@@ -820,146 +783,120 @@ pub fn draw_parameter_dual(
     );
 }
 
-fn draw_main_view_bg(state: &mut MainState, hw: &mut dyn HardwareInterface) {
-    draw_brand_background(hw);
-    draw_view_number(state.current_view, hw);
-    draw_button_action(0, "10A", false, hw);
-    draw_button_action(1, "BHeat", true, hw);
-    draw_button_action(2,
-        if get_parameter(ParameterId::CruiseActive).value == get_parameter(ParameterId::CruiseRequested).value {
-            "Cruis"
-        } else {
-            "???"
-        },
-        get_parameter(ParameterId::CruiseActive).value > 0.5 || get_parameter(ParameterId::CruiseRequested).value > 0.5,
-        hw);
-    draw_button_action(3, "<", false, hw);
-    draw_button_action(4, ">", false, hw);
-}
-
-fn draw_main_view_fg(redraw: bool, state: &mut MainState, hw: &mut dyn HardwareInterface) {
-    draw_parameter_dual(
-        "Range",
-        ParameterId::Soc,
-        ParameterId::RangeKm,
-        TEXT_TOP_ROW_Y + PARAM_ROW_HEIGHT * 0,
-        redraw,
-        hw,
-    );
-    draw_parameter_dual_custom_midstring(
-        "Battery",
-        ParameterId::BatteryTMin,
-        " ..",
-        ParameterId::BatteryTMax,
-        TEXT_TOP_ROW_Y + PARAM_ROW_HEIGHT * 1,
-        redraw,
-        hw,
-    );
-    draw_parameter_dual_custom_midstring(
-        "",
-        ParameterId::BatteryVMin,
-        "..",
-        ParameterId::BatteryVMax,
-        TEXT_TOP_ROW_Y + PARAM_ROW_HEIGHT * 2,
-        redraw,
-        hw,
-    );
-    /*draw_parameter(
-        ParameterId::AllowedChargePower,
-        TEXT_TOP_ROW_Y + PARAM_ROW_HEIGHT * 2,
-        redraw,
-        hw,
-    );*/
-    /*draw_parameter_text(
-        "Heat status",
-        "?",
-        "",
-        TEXT_TOP_ROW_Y + PARAM_ROW_HEIGHT * 3,
-        redraw,
-        hw,
-    );*/
-    draw_parameter_dual(
-        "Heater",
-        ParameterId::HeaterHeating,
-        ParameterId::HeaterT,
-        TEXT_TOP_ROW_Y + PARAM_ROW_HEIGHT * 3,
-        redraw,
-        hw,
-    );
-    draw_parameter_dual(
-        "Trip",
-        ParameterId::TripKm,
-        ParameterId::TripConsumption,
-        TEXT_TOP_ROW_Y + PARAM_ROW_HEIGHT * 4,
-        redraw,
-        hw,
-    );
-    draw_parameter_dual(
-        "Recent",
-        ParameterId::RecentKm,
-        ParameterId::RecentConsumption,
-        TEXT_TOP_ROW_Y + PARAM_ROW_HEIGHT * 5,
-        redraw,
-        hw,
-    );
-    /*draw_parameter(
-        ParameterId::TicksMs,
-        TEXT_TOP_ROW_Y + PARAM_ROW_HEIGHT * 6,
-        redraw,
-        hw,
-    );*/
-    draw_parameter_dual(
-        "Cruise",
-        ParameterId::CruiseRequested,
-        ParameterId::CruiseActive,
-        TEXT_TOP_ROW_Y + PARAM_ROW_HEIGHT * 6,
-        redraw,
-        hw,
-    );
-    draw_parameter(
-        ParameterId::AuxVoltage,
-        TEXT_TOP_ROW_Y + PARAM_ROW_HEIGHT * 7,
-        redraw,
-        hw,
-    );
-}
-
 static main_view: View = View {
     on_update: |redraw: bool, state: &mut MainState, hw: &mut dyn HardwareInterface| {
         if redraw {
-            draw_main_view_bg(state, hw);
+            draw_brand_background(hw);
+            draw_view_number(state.current_view, hw);
+            draw_button_action(0, "Cruis", false, hw);
+            draw_button_action(1, "BHeat", true, hw);
+            draw_button_action(2, "10A", false, hw);
+            draw_button_action(3, "<", false, hw);
+            draw_button_action(4, ">", false, hw);
         }
 
-        draw_main_view_fg(redraw, state, hw);
+        draw_parameter_dual(
+            "Range",
+            ParameterId::Soc,
+            ParameterId::RangeKm,
+            TEXT_TOP_ROW_Y + PARAM_ROW_HEIGHT * 0,
+            redraw,
+            hw,
+        );
+        draw_parameter_dual_custom_midstring(
+            "Battery",
+            ParameterId::BatteryTMin,
+            " ..",
+            ParameterId::BatteryTMax,
+            TEXT_TOP_ROW_Y + PARAM_ROW_HEIGHT * 1,
+            redraw,
+            hw,
+        );
+        draw_parameter_dual_custom_midstring(
+            "",
+            ParameterId::BatteryVMin,
+            "..",
+            ParameterId::BatteryVMax,
+            TEXT_TOP_ROW_Y + PARAM_ROW_HEIGHT * 2,
+            redraw,
+            hw,
+        );
+        /*draw_parameter(
+            ParameterId::AllowedChargePower,
+            TEXT_TOP_ROW_Y + PARAM_ROW_HEIGHT * 2,
+            redraw,
+            hw,
+        );*/
+        /*draw_parameter_text(
+            "Heat status",
+            "BDE",
+            "",
+            TEXT_TOP_ROW_Y + PARAM_ROW_HEIGHT * 3,
+            redraw,
+            hw,
+        );*/
+        draw_parameter_dual(
+            "Heater",
+            ParameterId::HeaterT,
+            ParameterId::HeaterPowerPercent,
+            TEXT_TOP_ROW_Y + PARAM_ROW_HEIGHT * 3,
+            redraw,
+            hw,
+        );
+        /*draw_parameter_dual(
+            "Trip",
+            ParameterId::TripKm,
+            ParameterId::TripConsumption,
+            TEXT_TOP_ROW_Y + PARAM_ROW_HEIGHT * 4,
+            redraw,
+            hw,
+        );*/
+        draw_parameter(
+            ParameterId::CabinT,
+            TEXT_TOP_ROW_Y + PARAM_ROW_HEIGHT * 4,
+            redraw,
+            hw,
+        );
+        /*draw_parameter_dual(
+            "Recent",
+            ParameterId::RecentKm,
+            ParameterId::RecentConsumption,
+            TEXT_TOP_ROW_Y + PARAM_ROW_HEIGHT * 5,
+            redraw,
+            hw,
+        );*/
+        draw_parameter_dual(
+            "OBC",
+            ParameterId::ObcDcv,
+            ParameterId::ObcDcc,
+            TEXT_TOP_ROW_Y + PARAM_ROW_HEIGHT * 5,
+            redraw,
+            hw,
+        );
+        /*draw_parameter(
+            ParameterId::TicksMs,
+            TEXT_TOP_ROW_Y + PARAM_ROW_HEIGHT * 6,
+            redraw,
+            hw,
+        );*/
+        draw_parameter(
+            ParameterId::AcVoltage,
+            TEXT_TOP_ROW_Y + PARAM_ROW_HEIGHT * 6,
+            redraw,
+            hw,
+        );
+        draw_parameter(
+            ParameterId::AuxVoltage,
+            TEXT_TOP_ROW_Y + PARAM_ROW_HEIGHT * 7,
+            redraw,
+            hw,
+        );
     },
 
     on_button: |event: ButtonEvent,
                 state: &mut MainState,
                 hw: &mut dyn HardwareInterface|
-     -> bool {
-        match event {
-            ButtonEvent::ButtonPress(Button::Button3) => {
-                if get_parameter(ParameterId::CruiseRequested).value < 0.5 {
-                    get_parameter(ParameterId::CruiseRequested).value = 1.0;
-                    hw.send_can(bxcan::Frame::new_data(
-                        bxcan::StandardId::new(0x320).unwrap(),
-                        bxcan::Data::new(b"\x02\x00\x00\x00\x01\x00\x00\x00").unwrap()
-                    ));
-                } else {
-                    get_parameter(ParameterId::CruiseRequested).value = 0.0;
-                    hw.send_can(bxcan::Frame::new_data(
-                        bxcan::StandardId::new(0x320).unwrap(),
-                        bxcan::Data::new(b"\x02\x00\x00\x00\x00\x00\x00\x00").unwrap()
-                    ));
-                }
-                draw_main_view_bg(state, hw);
-                draw_main_view_fg(true, state, hw);
-                return true;
-            }
-            ButtonEvent::ButtonPress(_) => {}
-        }
-        false
-     },
+     -> bool { false },
 };
 
 const PARAMS_PER_PAGE: usize = 8;
@@ -1088,6 +1025,8 @@ pub struct MainState {
     last_http_request_millis: u64,
     last_hvac_power_can_send_millis: u64,
     last_hvac_power_output_wanted_off_millis: u64,
+    sim7600_power_cycle_start_timestamp: u64,
+    sim7600_power_cycle_error_counter: u32,
 }
 
 impl MainState {
@@ -1103,6 +1042,8 @@ impl MainState {
             last_http_request_millis: 0,
             last_hvac_power_can_send_millis: 0,
             last_hvac_power_output_wanted_off_millis: 0,
+            sim7600_power_cycle_start_timestamp: 0,
+            sim7600_power_cycle_error_counter: 0,
         }
     }
 
@@ -1128,11 +1069,24 @@ impl MainState {
         self.update_counter += 1;
     }
 
+    fn timeout_parameters(&mut self, hw: &mut dyn HardwareInterface) {
+        for (i, param) in get_parameters().iter_mut().enumerate() {
+            if !param.value.is_nan() {
+                let age_ms = hw.millis() - param.update_timestamp;
+                if age_ms >= 5000 {
+                    param.value = f32::NAN;
+                }
+            }
+        }
+    }
+
     fn update_parameters(&mut self, hw: &mut dyn HardwareInterface) {
-        get_parameter(ParameterId::TicksMs).value = hw.millis() as f32;
-        get_parameter(ParameterId::AuxVoltage).value = hw.get_analog_input(AnalogInput::AuxVoltage);
+        get_parameter(ParameterId::TicksMs).set_value(hw.millis() as f32, hw.millis());
+        get_parameter(ParameterId::AuxVoltage).set_value(hw.get_analog_input(AnalogInput::AuxVoltage), hw.millis());
 
         // TODO: Update ParameterId::CabinT based on ADC
+
+        self.timeout_parameters(hw);
     }
 
     fn update_view(&mut self, hw: &mut dyn HardwareInterface) {
@@ -1152,8 +1106,9 @@ impl MainState {
     fn update_hvac_power(&mut self, hw: &mut dyn HardwareInterface) {
         let mut wanted_output_state = false;
         if get_parameter(ParameterId::HvacCountdown).value >= 0.0 {
-            get_parameter(ParameterId::HvacCountdown).value =
-                get_parameter(ParameterId::HvacCountdown).value - self.dt_ms as f32 * 0.001;
+            get_parameter(ParameterId::HvacCountdown).set_value(
+                get_parameter(ParameterId::HvacCountdown).value - self.dt_ms as f32 * 0.001,
+                hw.millis());
 
             if get_parameter(ParameterId::AuxVoltage).value >= 13.4 {
                 wanted_output_state = true;
@@ -1174,22 +1129,31 @@ impl MainState {
                 && (ms_since_last_hvac_power_output_wanted_off > 5000
                     || ms_since_last_hvac_power_output_wanted_off < 0);
             hw.set_digital_output(DigitalOutput::Wakeup, power_output_state);
-            hw.set_digital_output(DigitalOutput::Pwmout1, !power_output_state); // Active low
 
             hw.send_can(bxcan::Frame::new_data(
-                bxcan::StandardId::new(0x600).unwrap(),
+                bxcan::StandardId::new(0x570).unwrap(),
                 if get_parameter(ParameterId::HvacCountdown).value > 0.0 {
-                    // Request main contactor (as the otherwise unused "priuscharger")
-                    bxcan::Data::new(b"\x01\x00\x00\x00\x00\x00\x00\x00").unwrap()
+                    // Request ipdm1 to turn on the heater and pump
+                    bxcan::Data::new(b"\x02\x00\x00\x00\x01\x00\x00\x00").unwrap()
                 } else {
-                    // Request no main contactor (as the otherwise unused "priuscharger")
-                    bxcan::Data::new(b"\x00\x00\x00\x00\x00\x00\x00\x00").unwrap()
+                    // Request ipdm1 to turn off the heater and pump
+                    bxcan::Data::new(b"\x02\x00\x00\x00\x00\x00\x00\x00").unwrap()
                 },
             ));
         }
     }
 
     fn update_http(&mut self, hw: &mut dyn HardwareInterface) {
+        if hw.millis() - self.sim7600_power_cycle_start_timestamp < 3000 {
+            hw.set_digital_output(DigitalOutput::Sim7600PowerInhibit, true);
+        } else {
+            hw.set_digital_output(DigitalOutput::Sim7600PowerInhibit, false);
+        }
+
+        if hw.millis() - self.sim7600_power_cycle_start_timestamp < 4000 {
+            return;
+        }
+
         let mut url: ArrayString<500> = ArrayString::new();
         url.push_str(base_url);
 
@@ -1216,20 +1180,32 @@ impl MainState {
                 }
             }
             HttpUpdateStatus::Processing => {
-                if self.update_counter % 20 == 0 {
+                if self.update_counter % 100 == 0 {
                     info!("http_get_update() -> Processing");
                 }
             }
             HttpUpdateStatus::Failed(reason) => {
                 info!("http_get_update() -> Failed: {:?}", reason);
-                hw.http_get_stop();
+                if reason == HttpFailReason::InternalTimeout ||
+                        reason == HttpFailReason::InternalError ||
+                        reason == HttpFailReason::Unknown {
+                    self.sim7600_power_cycle_error_counter += 1;
+                    if self.sim7600_power_cycle_error_counter >= 4 {
+                        info!("-!- Power cycling SIM7600");
+                        self.sim7600_power_cycle_error_counter = 0;
+                        self.sim7600_power_cycle_start_timestamp = hw.millis();
+                    }
+                } else {
+                    hw.http_get_stop();
+                }
             }
             HttpUpdateStatus::Finished(response) => {
                 info!("http_get_update() -> Finished; response: {:?}", response);
                 hw.http_get_stop();
 
                 if response.body.contains("request_hvac_on") {
-                    get_parameters()[usize::from(ParameterId::HvacCountdown)].value = 60.0;
+                    get_parameters()[usize::from(ParameterId::HvacCountdown)].set_value(180.0,
+                            hw.millis());
                 }
             }
         }
@@ -1300,23 +1276,28 @@ impl MainState {
         }
 
         for (i, param) in get_parameters().iter_mut().enumerate() {
-            if let Some(can_map) = &mut param.can_map {
+            if let Some(can_map) = &param.can_map {
                 if let Some(data) = frame.data() {
                     if can_map.id == frame.id() {
                         match can_map.bits {
                             CanBitSelection::Bit(bit_i) => {
-                                param.value = ((data[(bit_i as usize) / 8] & (1 << (bit_i % 8))) >> (bit_i % 8))
-                                    as f32
-                                    * can_map.scale;
+                                param.set_value((data[(bit_i as usize) / 8] & (1 << (bit_i % 8)))
+                                        as f32 * can_map.scale,
+                                    self.last_millis);
                             }
                             CanBitSelection::Uint8(byte_i) => {
-                                param.value = (data[byte_i as usize] as u8) as f32 * can_map.scale;
+                                param.set_value((data[byte_i as usize] as u8) as
+                                        f32 * can_map.scale,
+                                    self.last_millis);
                             }
                             CanBitSelection::Int8(byte_i) => {
-                                param.value = (data[byte_i as usize] as i8) as f32 * can_map.scale;
+                                param.set_value((data[byte_i as usize] as i8) as
+                                        f32 * can_map.scale,
+                                    self.last_millis);
                             }
                             CanBitSelection::Function(function) => {
-                                param.value = function(data) * can_map.scale;
+                                param.set_value(function(data) * can_map.scale,
+                                    self.last_millis);
                             }
                         }
                     }
