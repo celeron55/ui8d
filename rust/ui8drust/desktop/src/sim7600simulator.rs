@@ -90,6 +90,25 @@ impl Sim7600Simulator {
                     status_code,
                     body.len(),
                 ));
+            } else if *command == *"AT+HTTPREAD?" {
+                // Execute the actual HTTP request here
+                let r = reqwest::blocking::get(&*self.url).unwrap();
+                let status_code = r.status().as_u16();
+                let mut body = ArrayString::from(&r.text().unwrap()).unwrap();
+                self.http_response = Some(HttpResponse {
+                    status_code: status_code,
+                    body: body,
+                });
+                // Response format:
+                // 'AT+HTTPACTION=0\r\r\n+HTTPACTION: 0,200,8\r\n'
+                // 'AT+HTTPACTION=0\r\r\n+HTTPACTION:\s*\d+,\s*(\d+),\s*(\d+)', where:
+                // int(match.group(1)) = status_code
+                // int(match.group(2)) = content_length
+                self.respond(&str_format!(
+                    fixedstr::str64,
+                    "AT+HTTPREAD?\r\r\n+HTTPREAD: LEN,{}\r\n\r\nOK\r\n",
+                    body.len(),
+                ));
             } else if command.starts_with("AT+HTTPREAD=0,") {
                 if let Some(http_response) = self.http_response {
                     // "AT+HTTPREAD=0,"+str(read_len)
