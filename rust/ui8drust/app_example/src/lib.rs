@@ -56,9 +56,11 @@ enum ParameterId {
     PmCr = 25,
     BmsChargeCompleteVoltageSetting = 26,
     Ipdm1ChargeCompleteVoltageSetting = 27,
+    Ipdm1AcChargeCurrentSetting = 28,
+    AcChargeCurrentSetting = 29,
 }
 
-static mut PARAMETERS: [Parameter<ParameterId>; 28] = [
+static mut PARAMETERS: [Parameter<ParameterId>; 30] = [
     Parameter {
         id: ParameterId::TicksMs,
         display_name: "Ticks",
@@ -521,6 +523,38 @@ static mut PARAMETERS: [Parameter<ParameterId>; 28] = [
         }),
         update_timestamp: 0,
     },
+    Parameter {
+        id: ParameterId::Ipdm1AcChargeCurrentSetting,
+        display_name: "Ipdm1AcCurSet",
+        value: f32::NAN,
+        decimals: 0,
+        unit: "A",
+        can_map: Some(CanMap {
+            id: bxcan::Id::Standard(StandardId::new(0x550).unwrap()),
+            bits: CanBitSelection::Uint8(3),
+            scale: 0.2,
+        }),
+        report_map: Some(ReportMap {
+            name: "i1acc",
+            decimals: 0,
+            scale: 1.0,
+        }),
+        update_timestamp: 0,
+    },
+    Parameter {
+        id: ParameterId::AcChargeCurrentSetting,
+        display_name: "AcCurSet",
+        value: 10.0,
+        decimals: 0,
+        unit: "A",
+        can_map: None,
+        report_map: Some(ReportMap {
+            name: "acc",
+            decimals: 0,
+            scale: 1.0,
+        }),
+        update_timestamp: 0,
+    },
 ];
 
 fn get_parameters() -> &'static mut [Parameter<'static, ParameterId>] {
@@ -842,9 +876,13 @@ static main_view: View = View {
         if redraw {
             draw_brand_background(hw);
             draw_view_number(state.current_view, hw);
-            draw_button_action(0, "Cruis", false, hw);
-            draw_button_action(1, "BHeat", true, hw);
-            draw_button_action(2, "10A", false, hw);
+            //draw_button_action(0, "Cruis", false, hw);
+            //draw_button_action(1, "BHeat", true, hw);
+            {
+                let mut text: ArrayString<10> = ArrayString::new();
+                text.push_str(&str_format!(fixedstr::str16, "{: >2.*}A", 0, get_parameter(ParameterId::AcChargeCurrentSetting).value));
+                draw_button_action(2, &text, get_parameter(ParameterId::AcChargeCurrentSetting).value >= 13.0, hw);
+            }
             draw_button_action(3, "<", false, hw);
             draw_button_action(4, ">", false, hw);
         }
@@ -950,7 +988,23 @@ static main_view: View = View {
     on_button: |event: ButtonEvent,
                 state: &mut MainState,
                 hw: &mut dyn HardwareInterface|
-     -> bool { false },
+     -> bool {
+        match event {
+            ButtonEvent::ButtonPress(Button::Button2) => {
+                return false;
+            }
+            ButtonEvent::ButtonPress(Button::Button3) => {
+                if get_parameter(ParameterId::AcChargeCurrentSetting).value < 13.0 {
+                    get_parameter(ParameterId::AcChargeCurrentSetting).value = 16.0;
+                } else {
+                    get_parameter(ParameterId::AcChargeCurrentSetting).value = 10.0;
+                }
+                return true;
+            }
+            ButtonEvent::ButtonPress(_) => {}
+        }
+        false
+     },
 };
 
 const PARAMS_PER_PAGE: usize = 8;
@@ -1001,18 +1055,16 @@ static all_params_view: View = View {
             ButtonEvent::ButtonPress(Button::Button2) => {
                 if state.all_params_view_page > 0 {
                     state.all_params_view_page -= 1;
-                    draw_all_params_view_bg(state, hw);
-                    draw_all_params_view_fg(true, state, hw);
+                    return true;
                 }
-                return true;
+                return false;
             }
             ButtonEvent::ButtonPress(Button::Button3) => {
                 if state.all_params_view_page < get_parameters().len() / PARAMS_PER_PAGE {
                     state.all_params_view_page += 1;
-                    draw_all_params_view_bg(state, hw);
-                    draw_all_params_view_fg(true, state, hw);
+                    return true;
                 }
-                return true;
+                return false;
             }
             ButtonEvent::ButtonPress(_) => {}
         }
@@ -1129,7 +1181,7 @@ impl MainState {
 
     fn timeout_parameters(&mut self, hw: &mut dyn HardwareInterface) {
         for (i, param) in get_parameters().iter_mut().enumerate() {
-            if !param.value.is_nan() {
+            if param.can_map.is_some() && !param.value.is_nan() {
                 let age_ms = hw.millis() - param.update_timestamp;
                 if age_ms >= 5000 {
                     param.value = f32::NAN;
@@ -1221,6 +1273,17 @@ impl MainState {
                     ParameterId::Ipdm1ChargeCompleteVoltageSetting).value as u16 / 20,
                 CHARGE_COMPLETE_VOLTAGE_SETTING_MV / 20);
         }
+
+        let current_ac_charge_current_Ax5 = (get_parameter(
+                ParameterId::Ipdm1AcChargeCurrentSetting).value * 5.0) as u16;
+        let wanted_ac_charge_current_Ax5 = (get_parameter(
+                ParameterId::AcChargeCurrentSetting).value * 5.0) as u16;
+
+        if current_ac_charge_current_Ax5 != wanted_ac_charge_current_Ax5 {
+            self.send_setting_frame(hw, 0x570, 0,
+                current_ac_charge_current_Ax5,
+                wanted_ac_charge_current_Ax5);
+        }
     }
 
     fn update_http(&mut self, hw: &mut dyn HardwareInterface) {
@@ -1294,6 +1357,7 @@ impl MainState {
     pub fn on_button_event(&mut self, event: ButtonEvent, hw: &mut dyn HardwareInterface) {
         info!("Button event: {:?}", event);
         if ((views[self.current_view]).on_button)(event, self, hw) {
+            ((views[self.current_view]).on_update)(true, self, hw);
             return;
         }
         match event {
