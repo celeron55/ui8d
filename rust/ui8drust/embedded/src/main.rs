@@ -678,7 +678,7 @@ mod rtic_app {
 
         let mut i2c1 = hal::i2c::I2c::new(
             cx.device.I2C1,
-            (gpiob.pb8, gpiob.pb7),
+            (gpiob.pb6, gpiob.pb7),
             hal::i2c::Mode::Standard {
                 frequency: 400.kHz(),
             },
