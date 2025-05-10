@@ -1,0 +1,64 @@
+UI8D to-do
+==========
+
+Korjaa ongelmat seuraavaan versioon:
+- +3.3V kiskon jännite on 4.24V
+	* U305 ja U308 on väärällä pinnijärjestyksellä
+	* Vin ja Vout on ristissä, GND (pin 1) on oikein
+	- Vaihda U305 pinnijärjestys oikein päin
+	- Vaihda U308 pinnijärjestys oikein päin
+- USB C -liittimistä puuttuu CC1,CC2-pinneistä 5.1k vastukset maahan
+- Hankkiudu eroon EG3001-MOSFET-drivereista general purpose outputteina, koska
+  ne ei kestä. Tai ehkä ne kestäisi 2mA PPTC:llä, mutta se ei enää ole general
+  purpose -virtaraja
+	- Korvaa U11
+	- Korvaa U12
+	* Vai hajosiko se ESD:n takia? Siinä tapauksessa voisi kokeilla vaan lisätä
+	  ESD-suojaus
+- Lisää SIM7600:n datalinjoihin sarjavastukset:
+	- STM32:n TX-linjaan 1k vastus
+	- STM32:n RX-linjaan 10k vastus
+	- SLEEP-linjaan 1k vastus
+? SIM7600:n datalinjoihin pitäisi varmaan lisätä 10pF konkat (siten että kukin
+  muodostaa alipäästösuodattimen vastuksen kanssa)
+- Lisää SIM7600:n 5V virransyöttöön softalla ohjattava kytkin jolla sen voi
+  resetoida, koska BK-SIM7600-moduuli ei tarjoa reset-pinniä
+	* Sleep-linjaa voinee käyttää tähän, mutta erillinen ei tietystikään haittaa
+- MicroPythonissa BUTTON1 (PA4) ja BUTTON5 (PE4) keskeytyksiä ei saa päälle
+  yhtäaikaa
+- Lisää SPI-näytön 14-pinnisen liittimen viereen 2.54mm etäisyydelle toinen
+  liitin (näyttömoduuleita on kahta eri pituutta ja lyhyempi on lyhennetty
+  pitkän liittimen päästä näyttöruudun sijaintiin nähden)
+- Lisää pull-up REMOTE_RS232_SHDN-linjaan jotta RS232 päälevylle toimii ilman
+  softatukea ui8d:ltä
+	* SP3222E/SP3223E:n speksi vaatii SHDN#:n high-tilaan min. 2.0V
+	* Päälevyllä vastaavan linjan nimi on PERIPHERALS_ENABLE ja siinä on 100k
+	  pull-up 3.3 volttin. 100k ei riitä vetämään linjaa kuin 0.2V jännitteeseen
+	  koska siellä linjaan on virheellisesti kytketty 3.3k vastus
+	  NPN-transistorin Q2H5V1 kannalle ja 3.3k pull-downin kautta maahan
+	  (6.6/(100+6.6)*3.3V = 0.2V). Tämä ongelma korjataan erikseen.
+- H1 (antenni) on populoitu (ei pitäisi olla)
+- C412492 (SP3222EEA-L/TR) ei mahdu footprinttiinsä
+	* JLCPCB:n löytämä ongelma
+	* U302 ja U9
+	* Korvattava BOMissa C33330:lla (SP3223EEY-L/TR), joka sopii
+		* SP3223E:ssä on "AUTO ON-LINE"-feature joka käytännössä vaatii
+		  SP3222E:hen verrattuna pinnin 14 vetämisen ylös jotta piiri pysyy
+		  päällä
+	* Levyllä oleva footprint vaikuttaa olevan TSSOP-20
+	* Vaihtoehtoisesti muuta footprint SSOP-20:ksi, johon halvempi C412492
+	  sopii
+- Lisää/siirrä lämpöanturi johonkin levyn nurkkaan siten että sillä voi oikeasti
+  mitata ympäristön lämpötilaa
+- Move the LoRa module on the middle of the backside, so that the buttons
+  can fit in a d-pad formation on the right of the display
+? Siirrä napit näytön oikealle puolelle nuoli- ja keskinapeiksi ja tee levystä
+  vastaavasti vähemmän korkea
+? Add SPI flash usable by micropython
+- Add diode from REMOTE_USB2_VBUS to REMOTE_5V to avoid 3.3V line flickering on
+  LCD updates due to 5V line dipping below 4V
+- Make sure the board can accept a speedometer pulse input on its AIN pin
+
+Tee softaa:
+- ui8d: Testaa LoRa (kunhan sen 3.3V regu on bodgetettu)
+
