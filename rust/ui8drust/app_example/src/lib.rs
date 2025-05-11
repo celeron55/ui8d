@@ -58,9 +58,15 @@ enum ParameterId {
     Ipdm1ChargeCompleteVoltageSetting = 27,
     Ipdm1AcChargeCurrentSetting = 28,
     AcChargeCurrentSetting = 29,
+    CcsCurrent = 30,
+    ChademoCurrent = 31,
+    ChargePower = 32,
+    TripEnergy = 33,
+    RecentEnergy = 34,
+    Speed = 35,
 }
 
-static mut PARAMETERS: [Parameter<ParameterId>; 30] = [
+static mut PARAMETERS: [Parameter<ParameterId>; 36] = [
     Parameter {
         id: ParameterId::TicksMs,
         display_name: "Ticks",
@@ -555,6 +561,97 @@ static mut PARAMETERS: [Parameter<ParameterId>; 30] = [
         }),
         update_timestamp: 0,
     },
+    Parameter {
+        id: ParameterId::CcsCurrent,
+        display_name: "CCS",
+        value: f32::NAN,
+        decimals: 0,
+        unit: "A",
+        can_map: Some(CanMap {
+            id: bxcan::Id::Standard(StandardId::new(0x506).unwrap()),
+            bits: CanBitSelection::Uint8(5),
+            scale: 2.0,
+        }),
+        report_map: Some(ReportMap {
+            name: "ccsc",
+            decimals: 0,
+            scale: 1.0,
+        }),
+        update_timestamp: 0,
+    },
+    Parameter {
+        id: ParameterId::ChademoCurrent,
+        display_name: "Chademo",
+        value: f32::NAN,
+        decimals: 0,
+        unit: "A",
+        can_map: Some(CanMap {
+            id: bxcan::Id::Standard(StandardId::new(0x500).unwrap()),
+            bits: CanBitSelection::Uint8(5),
+            scale: 1.0,
+        }),
+        report_map: Some(ReportMap {
+            name: "chac",
+            decimals: 0,
+            scale: 1.0,
+        }),
+        update_timestamp: 0,
+    },
+    Parameter {
+        id: ParameterId::ChargePower,
+        display_name: "Charge power",
+        value: f32::NAN,
+        decimals: 1,
+        unit: "kW",
+        can_map: None,
+        report_map: Some(ReportMap {
+            name: "chgp",
+            decimals: 0,
+            scale: 0.001,
+        }),
+        update_timestamp: 0,
+    },
+    Parameter {
+        id: ParameterId::TripEnergy,
+        display_name: "Trip",
+        value: f32::NAN,
+        decimals: 0,
+        unit: "Wh",
+        can_map: None,
+        report_map: None,
+        update_timestamp: 0,
+    },
+    Parameter {
+        id: ParameterId::RecentEnergy,
+        display_name: "Recent",
+        value: f32::NAN,
+        decimals: 0,
+        unit: "Wh",
+        can_map: None,
+        report_map: None,
+        update_timestamp: 0,
+    },
+    Parameter {
+        id: ParameterId::Speed,
+        display_name: "Speed",
+        value: f32::NAN,
+        decimals: 0,
+        unit: "km/h",
+        can_map: Some(CanMap {
+            // MG2 speed scaled for 2nd gear
+            id: bxcan::Id::Standard(StandardId::new(0x051).unwrap()),
+            bits: CanBitSelection::Function(|data: &[u8]| -> f32 {
+                (((data[2] as u16) << 8) | data[3] as u16) as f32
+            }),
+            scale: 80.0 / 5300.0,
+        }),
+        report_map: Some(ReportMap {
+            name: "speed",
+            decimals: 0,
+            scale: 1.0,
+        }),
+        update_timestamp: 0,
+    },
 ];
 
 fn get_parameters() -> &'static mut [Parameter<'static, ParameterId>] {
@@ -958,10 +1055,8 @@ static main_view: View = View {
             redraw,
             hw,
         );*/
-        draw_parameter_dual(
-            "OBC",
-            ParameterId::ObcDcv,
-            ParameterId::ObcDcc,
+        draw_parameter(
+            ParameterId::ChargePower,
             TEXT_TOP_ROW_Y + PARAM_ROW_HEIGHT * 5,
             redraw,
             hw,
@@ -972,8 +1067,10 @@ static main_view: View = View {
             redraw,
             hw,
         );*/
-        draw_parameter(
-            ParameterId::AcVoltage,
+        draw_parameter_dual(
+            "OBC",
+            ParameterId::ObcDcv,
+            ParameterId::ObcDcc,
             TEXT_TOP_ROW_Y + PARAM_ROW_HEIGHT * 6,
             redraw,
             hw,
@@ -1200,7 +1297,18 @@ impl MainState {
         get_parameter(ParameterId::AuxVoltage).set_value(hw.get_analog_input(AnalogInput::AuxVoltage), hw.millis());
         get_parameter(ParameterId::CabinT).set_value(hw.get_analog_input(AnalogInput::PcbT) - 12.0, hw.millis());
 
-        // TODO: Update ParameterId::CabinT based on ADC
+        get_parameter(ParameterId::ChargePower).set_value(
+            if get_parameter(ParameterId::CcsCurrent).value > 1.0 {
+                get_parameter(ParameterId::CcsCurrent).value *
+                        get_parameter(ParameterId::ObcDcv).value * 0.001
+            } else if get_parameter(ParameterId::ChademoCurrent).value > 1.0 {
+                get_parameter(ParameterId::ChademoCurrent).value *
+                        get_parameter(ParameterId::ObcDcv).value * 0.001
+            } else {
+                get_parameter(ParameterId::ObcDcc).value *
+                        get_parameter(ParameterId::ObcDcv).value * 0.001
+            },
+            hw.millis());
 
         self.timeout_parameters(hw);
     }
