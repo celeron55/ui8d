@@ -968,13 +968,47 @@ pub fn draw_parameter_dual(
     );
 }
 
+static mut main_view_drawn_cruise_requested: f32 = f32::NAN;
+static mut main_view_drawn_cruise_active: f32 = f32::NAN;
+
 static main_view: View = View {
     on_update: |redraw: bool, state: &mut MainState, hw: &mut dyn HardwareInterface| {
+        let cruise_changed = unsafe {
+            main_view_drawn_cruise_requested !=
+                get_parameter(ParameterId::CruiseRequested).value ||
+            main_view_drawn_cruise_active !=
+                get_parameter(ParameterId::CruiseActive).value };
+
         if redraw {
             draw_brand_background(hw);
             draw_view_number(state.current_view, hw);
             draw_button_action(0, "Reboot", false, hw);
-            //draw_button_action(0, "Cruis", false, hw);
+        }
+
+        if redraw || cruise_changed {
+            unsafe {
+                main_view_drawn_cruise_requested =
+                        get_parameter(ParameterId::CruiseRequested).value;
+                main_view_drawn_cruise_active =
+                        get_parameter(ParameterId::CruiseActive).value;
+            };
+            draw_button_action(1,
+                if get_parameter(ParameterId::CruiseRequested).value > 0.5 {
+                    if get_parameter(ParameterId::CruiseActive).value ==
+                            get_parameter(ParameterId::CruiseRequested).value {
+                        "Cruis"
+                    } else {
+                        "Crui?"
+                    }
+                } else {
+                    "Cruis"
+                },
+                get_parameter(ParameterId::CruiseActive).value > 0.5 ||
+                        get_parameter(ParameterId::CruiseRequested).value > 0.5,
+                hw);
+        }
+
+        if redraw {
             //draw_button_action(1, "BHeat", true, hw);
             {
                 let mut text: ArrayString<10> = ArrayString::new();
@@ -1093,7 +1127,20 @@ static main_view: View = View {
                 return true;
             }
             ButtonEvent::ButtonPress(Button::Button2) => {
-                return false;
+                if get_parameter(ParameterId::CruiseRequested).value < 0.5 {
+                    get_parameter(ParameterId::CruiseRequested).value = 1.0;
+                    hw.send_can(bxcan::Frame::new_data(
+                        bxcan::StandardId::new(0x320).unwrap(),
+                        bxcan::Data::new(b"\x02\x00\x00\x00\x01\x00\x00\x00").unwrap()
+                    ));
+                } else {
+                    get_parameter(ParameterId::CruiseRequested).value = 0.0;
+                    hw.send_can(bxcan::Frame::new_data(
+                        bxcan::StandardId::new(0x320).unwrap(),
+                        bxcan::Data::new(b"\x02\x00\x00\x00\x00\x00\x00\x00").unwrap()
+                    ));
+                }
+                return true;
             }
             ButtonEvent::ButtonPress(Button::Button3) => {
                 if get_parameter(ParameterId::AcChargeCurrentSetting).value < 13.0 {
