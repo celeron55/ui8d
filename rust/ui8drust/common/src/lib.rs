@@ -7,6 +7,8 @@ pub mod command_accumulator;
 pub mod log_display;
 pub use log_display::LogDisplay;
 
+pub mod http;
+
 pub extern crate bxcan;
 pub extern crate embedded_graphics;
 pub extern crate log;

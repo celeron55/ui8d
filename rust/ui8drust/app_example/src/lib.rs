@@ -672,11 +672,9 @@ pub struct MainState {
     all_params_view_page: usize,
     last_millis: u64,
     dt_ms: u64,
-    last_http_request_millis: u64,
+    http_process: http::HttpProcess,
     last_hvac_power_can_send_millis: u64,
     last_hvac_power_output_wanted_off_millis: u64,
-    sim7600_power_cycle_start_timestamp: u64,
-    sim7600_power_cycle_error_counter: u32,
     last_charge_config_millis: u64,
 }
 
@@ -691,11 +689,9 @@ impl MainState {
             all_params_view_page: 0,
             last_millis: 0,
             dt_ms: 0,
-            last_http_request_millis: 0,
+            http_process: http::HttpProcess::new(),
             last_hvac_power_can_send_millis: 0,
             last_hvac_power_output_wanted_off_millis: 0,
-            sim7600_power_cycle_start_timestamp: 0,
-            sim7600_power_cycle_error_counter: 0,
             last_charge_config_millis: 0,
         }
     }
@@ -844,22 +840,11 @@ impl MainState {
     }
 
     fn update_http(&mut self, hw: &mut dyn HardwareInterface) {
-        if hw.millis() - self.sim7600_power_cycle_start_timestamp < 3000 {
-            hw.set_digital_output(DigitalOutput::Sim7600PowerInhibit, true);
-        } else {
-            hw.set_digital_output(DigitalOutput::Sim7600PowerInhibit, false);
-        }
-
-        if hw.millis() - self.sim7600_power_cycle_start_timestamp < 4000 {
-            return;
-        }
-
-        let mut url: ArrayString<500> = ArrayString::new();
-        url.push_str(base_url);
-
+        self.http_process.url.clear();
+        self.http_process.url.push_str(base_url);
         for param in get_parameters() {
             if let Some(map) = &param.report_map {
-                url.push_str(&str_format!(
+                self.http_process.url.push_str(&str_format!(
                     fixedstr::str16,
                     "{}={:.*}&",
                     map.name,
@@ -869,45 +854,14 @@ impl MainState {
             }
         }
 
-        let ms_since_last_request = hw.millis() - self.last_http_request_millis;
-
-        match hw.http_get_update() {
-            HttpUpdateStatus::NotStarted => {
-                if ms_since_last_request > 10000 || ms_since_last_request < 0 {
-                    info!("http_get_update() -> NotStarted; starting");
-                    hw.http_get_start(&url);
-                    self.last_http_request_millis = hw.millis();
-                }
-            }
-            HttpUpdateStatus::Processing => {
-                if self.update_counter % 100 == 0 {
-                    info!("http_get_update() -> Processing");
-                }
-            }
-            HttpUpdateStatus::Failed(reason) => {
-                info!("http_get_update() -> Failed: {:?}", reason);
-                if reason == HttpFailReason::InternalTimeout ||
-                        reason == HttpFailReason::InternalError ||
-                        reason == HttpFailReason::Unknown {
-                    self.sim7600_power_cycle_error_counter += 1;
-                    if self.sim7600_power_cycle_error_counter >= 10 {
-                        info!("-!- Power cycling SIM7600");
-                        self.sim7600_power_cycle_error_counter = 0;
-                        self.sim7600_power_cycle_start_timestamp = hw.millis();
-                    }
-                } else {
-                    hw.http_get_stop();
-                }
-            }
+        match self.http_process.update(hw) {
             HttpUpdateStatus::Finished(response) => {
-                info!("http_get_update() -> Finished; response: {:?}", response);
-                hw.http_get_stop();
-
                 if response.body.contains("request_hvac_on") {
                     get_parameters()[usize::from(ParameterId::HvacCountdown)].set_value(180.0,
                             hw.millis());
                 }
             }
+            _ => {}
         }
     }
 
