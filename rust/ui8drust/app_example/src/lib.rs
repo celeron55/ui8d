@@ -1220,11 +1220,58 @@ static log_view: View = View {
      -> bool { false },
 };
 
-static views: [&View; 3] = [&main_view, &all_params_view, &log_view];
+static mainboard_log_view: View = View {
+    on_update: |redraw: bool, state: &mut MainState, hw: &mut dyn HardwareInterface| {
+        if redraw {
+            draw_brand_background(hw);
+            draw_view_number(state.current_view, hw);
+            draw_button_action(3, "<", false, hw);
+            draw_button_action(4, ">", false, hw);
+        }
+
+        let mut text: ArrayString<30> = ArrayString::new();
+        text.push_str(&str_format!(fixedstr::str8, "{:>7}:", state.update_counter));
+
+        hw.display_draw_text(
+            &text,
+            Point::new(200, TEXT_ACTION_ROW_Y),
+            TEXT_STYLE_TITLE,
+            eg::text::Alignment::Right,
+        );
+
+        for i in 0..log_display::NUM_LINES {
+            if state.mainboard_log_display.lines.len() <= i {
+                break;
+            }
+
+            // Pad text with space in order to paint over the old line
+            let mut text: ArrayString<{ log_display::LINE_MAX_LENGTH }> =
+                ArrayString::from(&state.mainboard_log_display.lines[i]).unwrap();
+            while text.len() < log_display::LINE_MAX_LENGTH {
+                _ = text.try_push(' ');
+            }
+
+            hw.display_draw_text(
+                &text,
+                Point::new(0, TEXT_TOP_ROW_Y - 8 + 10 * (i as i32)),
+                TEXT_STYLE_LOG,
+                eg::text::Alignment::Left,
+            );
+        }
+    },
+
+    on_button: |event: ButtonEvent,
+                state: &mut MainState,
+                hw: &mut dyn HardwareInterface|
+     -> bool { false },
+};
+
+static views: [&View; 4] = [&main_view, &all_params_view, &log_view, &mainboard_log_view];
 
 pub struct MainState {
     update_counter: u32,
     log_display: LogDisplay,
+    mainboard_log_display: LogDisplay,
     current_view: usize,
     log_can: bool,
     all_params_view_page: usize,
@@ -1243,6 +1290,7 @@ impl MainState {
         Self {
             update_counter: 0,
             log_display: LogDisplay::new(),
+            mainboard_log_display: LogDisplay::new(),
             current_view: 0,
             log_can: false,
             all_params_view_page: 0,
@@ -1525,6 +1573,11 @@ impl MainState {
 
     pub fn store_log_for_display(&mut self, buf: &str) {
         self.log_display.append(buf);
+    }
+
+    pub fn on_mainboard_rx(&mut self, buf: &str) {
+        info!("MAINBOARD: {:?}", buf);
+        self.mainboard_log_display.append(buf);
     }
 
     pub fn on_can(&mut self, frame: bxcan::Frame) {
