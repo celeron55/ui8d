@@ -618,6 +618,7 @@ mod rtic_app {
             serial::config::Config::default().baudrate(115200.bps()),
             &clocks
         ).unwrap();
+        usart3_rx.listen();
 
         // USB
 
