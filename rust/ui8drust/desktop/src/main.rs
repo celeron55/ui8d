@@ -27,6 +27,7 @@ use embedded_graphics::{
 #[allow(unused_imports)]
 use log::{info, warn};
 use ringbuffer::{ConstGenericRingBuffer, RingBuffer};
+use fixedstr::str_format;
 
 // General purpose libraries
 use std::f64::consts::PI;
@@ -212,6 +213,16 @@ fn main() {
 
         if e.update_args().is_some() {
             hw.update_sim7600();
+
+            if counter % UPS == 0 {
+                let mut text: ArrayString<32> = ArrayString::new();
+                text.push_str(&str_format!(
+                    fixedstr::str32,
+                    "Dummy mainboard transmit {}\n",
+                    counter / UPS
+                ));
+                state.on_mainboard_rx(&text);
+            }
 
             hw.can_sim.update(hw.ms_counter);
             while let Some(frame) = hw.can_sim.txbuf.dequeue() {

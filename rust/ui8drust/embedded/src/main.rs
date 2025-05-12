@@ -363,7 +363,7 @@ mod rtic_app {
         usart1_tx: &'static mut hal::serial::Tx<hal::pac::USART1, u8>,
         usart2_rx: hal::serial::Rx<hal::pac::USART2, u8>,
         usart2_tx: hal::serial::Tx<hal::pac::USART2, u8>,
-        //usart3_rx: hal::serial::Rx<hal::pac::USART3, u8>,
+        usart3_rx: hal::serial::Rx<hal::pac::USART3, u8>,
         //usart3_tx: hal::serial::Tx<hal::pac::USART3, u8>,
         command_accumulator: CommandAccumulator<50>,
         i2c1: hal::i2c::I2c<hal::pac::I2C1>,
@@ -611,17 +611,13 @@ mod rtic_app {
         // floated when direct communication to mainboard via USB connector is
         // wanted, e.g.  when flashing the main board or when using the
         // mainboard serial console via USB.
-        // TODO: It's strictly disabled now to make sure the pins are floating.
 
-        /*let serial_usart3: serial::Serial<pac::USART3, u8> = serial::Serial::new(
+        let mut usart3_rx: serial::Rx<pac::USART3, u8> = serial::Serial::rx(
             cx.device.USART3,
-            (gpiod.pd8.into_alternate::<7>(),
-            gpiod.pd9.internal_pull_up(true).into_alternate::<7>()),
+            gpiod.pd9.internal_pull_up(true).into_alternate::<7>(),
             serial::config::Config::default().baudrate(115200.bps()),
             &clocks
         ).unwrap();
-        let (usart3_tx, mut usart3_rx) = serial_usart3.split();
-        usart3_rx.listen();*/
 
         // USB
 
@@ -761,7 +757,7 @@ mod rtic_app {
                 usart1_tx: usart1_tx,
                 usart2_rx: usart2_rx,
                 usart2_tx: usart2_tx,
-                //usart3_rx: usart3_rx,
+                usart3_rx: usart3_rx,
                 //usart3_tx: usart3_tx,
                 command_accumulator: CommandAccumulator::new(),
                 i2c1: i2c1,
@@ -820,7 +816,7 @@ mod rtic_app {
 
             // Set backlight PWM based on LDR brightness measurement
             let adc_result_ldr = cx.shared.adc_result_ldr.lock(|v| *v);
-            let ldr_percent = adc_result_ldr as f32 / 4095.0 * 100.0;
+            let ldr_percent = adc_result_ldr as f32 / 4095.0 * 200.0;
             let wanted_backlight_pwm = (ldr_percent / 100.0).max(0.01);
             // Lowpass filter
             let new_backlight_pwm =
@@ -870,6 +866,19 @@ mod rtic_app {
             }
             if !logged_rxbuf.is_empty() {
                 info!("SIM7600: RX: {:?}", logged_rxbuf);
+            }
+
+            // Handle external logging from main board
+            let mut logged_rxbuf: ArrayString<50> = ArrayString::new();
+            while let Some(b) = cx.shared.mainboard_rxbuf.lock(|rxbuf| rxbuf.dequeue()) {
+                logged_rxbuf.push(b as char);
+                if logged_rxbuf.is_full() {
+                    state.on_mainboard_rx(&logged_rxbuf);
+                    logged_rxbuf.clear();
+                }
+            }
+            if !logged_rxbuf.is_empty() {
+                state.on_mainboard_rx(&logged_rxbuf);
             }
 
             // Handle console commands
@@ -1146,13 +1155,12 @@ mod rtic_app {
         }
     }
 
-    /*#[task(
+    #[task(
         priority = 6,
         binds = USART3,
-        shared = [mainboard_rxbuf, mainboard_txbuf],
+        shared = [mainboard_rxbuf],
         local = [
             usart3_rx,
-            usart3_tx,
         ])
     ]
     fn usart3(mut cx: usart3::Context) {
@@ -1163,7 +1171,7 @@ mod rtic_app {
                 rxbuf.push(b);
             });
         }
-        // Transmit from buffer
+        /*// Transmit from buffer
         cx.shared.mainboard_txbuf.lock(|txbuf| {
             if let Some(b) = txbuf.front() {
                 match cx.local.usart3_tx.write(*b) {
@@ -1178,8 +1186,8 @@ mod rtic_app {
             } else {
                 cx.local.usart3_tx.listen();
             }
-        });
-    }*/
+        });*/
+    }
 
     #[task(
         priority = 9,
