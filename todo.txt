@@ -50,6 +50,8 @@ Korjaa ongelmat seuraavaan versioon:
 	  sopii
 - Lisää/siirrä lämpöanturi johonkin levyn nurkkaan siten että sillä voi oikeasti
   mitata ympäristön lämpötilaa
+- Muista päivittää versiotunnistusvastusjako
+- Lisää piipperi
 - Move the LoRa module on the middle of the backside, so that the buttons
   can fit in a d-pad formation on the right of the display
 ? Siirrä napit näytön oikealle puolelle nuoli- ja keskinapeiksi ja tee levystä
