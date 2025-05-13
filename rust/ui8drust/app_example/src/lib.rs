@@ -334,6 +334,7 @@ enum Warning {
     BatteryCriticallyHigh,
     HeaterOverTemperature,
     PrechargeFailed,
+    ObcCpMismatch,
     ObcDcvMismatch,
     DcdcDown,
     DcdcAuxMismatch,
@@ -381,10 +382,14 @@ fn generate_warning(hw: &mut dyn HardwareInterface) -> Warning {
             (get_parameter(ParameterId::ObcDcv).value < 150.0 ||
                 get_parameter(ParameterId::ObcDcv).value > 400.0) {
         Warning::ObcDcvMismatch
+    } else if (get_parameter(ParameterId::FoccciCPPWM).value -
+            get_parameter(ParameterId::ObcEvsePwm).value).abs() > 2.0 {
+        Warning::ObcCpMismatch
     } else if get_parameter(ParameterId::MainContactor).value >= 0.5 &&
             get_parameter(ParameterId::DcdcStatus).value != 0x22 as f32 {
         Warning::DcdcDown
-    } else if (get_parameter(ParameterId::DcdcAuxVoltage).value - get_parameter(ParameterId::AuxVoltage).value).abs() > 1.0 {
+    } else if (get_parameter(ParameterId::DcdcAuxVoltage).value -
+            get_parameter(ParameterId::AuxVoltage).value).abs() > 1.0 {
         Warning::DcdcAuxMismatch
     } else if get_parameter(ParameterId::IpdmReqMC).value > 0.5 &&
             get_parameter(ParameterId::MainContactor).value < 0.5 &&

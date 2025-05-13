@@ -46,7 +46,7 @@ pub enum ParameterId {
     Speed = 35,
     CruiseActive = 36,
     CruiseRequested = 37,
-    ControlPilotDutyPercent = 38,
+    FoccciCPPWM = 38,
     AcObcState = 39,
     BmsMaxChargeCurrent = 40,
     BmsMaxDischargeCurrent = 41,
@@ -668,7 +668,7 @@ static mut PARAMETERS: [Parameter<ParameterId>; 57] = [
         update_timestamp: 0,
     },
     Parameter {
-        id: ParameterId::ControlPilotDutyPercent,
+        id: ParameterId::FoccciCPPWM,
         display_name: "Foccci CP PWM",
         value: f32::NAN,
         decimals: 0,
