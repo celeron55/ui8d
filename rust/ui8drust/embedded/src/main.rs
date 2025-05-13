@@ -795,6 +795,7 @@ mod rtic_app {
             can1,
             can_rx_buf,
             can_tx_buf,
+            button1_pin,
             button_event_queue,
             adc_result_ldr,
             adc_result_vbat,
@@ -805,6 +806,7 @@ mod rtic_app {
             hw,
             tim4_pwm,
             last_backlight_pwm,
+            button1_last_pressed: bool = false,
         ]
     )]
     async fn ui_task(mut cx: ui_task::Context) {
@@ -824,6 +826,18 @@ mod rtic_app {
                 wanted_backlight_pwm * 0.01 + *cx.local.last_backlight_pwm * 0.99;
             *cx.local.last_backlight_pwm = new_backlight_pwm;
             set_lcd_backlight(new_backlight_pwm, &mut cx.local.tim4_pwm);
+
+            // Poll button1 (External interrupt can't be used because it
+            // conflicts with button5. Buttons 2...5 are handled using external
+            // interrupts)
+            let button1_pressed = cx.shared.button1_pin.lock(|pin| pin.is_low());
+            if button1_pressed && !*cx.local.button1_last_pressed {
+                info!("ui_task: button1 down event");
+                cx.shared.button_event_queue.lock(|button_event_queue| {
+                    button_event_queue.push(ButtonEvent::ButtonPress(Button::Button1));
+                });
+            }
+            *cx.local.button1_last_pressed = button1_pressed;
 
             // Handle button events
             while let Some(event) = cx.shared.button_event_queue.lock(|queue| queue.dequeue()) {
@@ -970,28 +984,13 @@ mod rtic_app {
         binds = EXTI0,
         shared = [
             wkup_pin,
-            button1_pin,
-            button_event_queue,
         ],
-        local = [
-            button1_last_pressed: bool = false,
-        ]
     )]
     fn exti0(mut cx: exti0::Context) {
         cx.shared
             .wkup_pin
             .lock(|pin| pin.clear_interrupt_pending_bit());
-        let button1_pressed = cx.shared.button1_pin.lock(|pin| pin.is_low());
         //info!("EXTI0 (WKUP)");
-        // button1 presses are detected here (as it can't have its own
-        // interrupt)
-        if button1_pressed && !*cx.local.button1_last_pressed {
-            info!("WKUP: button1 down event");
-            cx.shared.button_event_queue.lock(|button_event_queue| {
-                button_event_queue.push(ButtonEvent::ButtonPress(Button::Button1));
-            });
-        }
-        *cx.local.button1_last_pressed = button1_pressed;
     }
 
     #[task(
