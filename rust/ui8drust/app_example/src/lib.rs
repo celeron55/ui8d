@@ -26,6 +26,7 @@ use int_enum::IntEnum;
 #[allow(unused_imports)]
 use log::{debug, error, info, trace, warn};
 use ringbuffer::RingBuffer;
+use core::fmt::Write;
 
 // View definitions
 
@@ -60,6 +61,13 @@ const TEXT_STYLE_ERROR: mono_font::MonoTextStyle<Rgb565> = mono_font::MonoTextSt
     .text_color(Rgb565::RED)
     .background_color(Rgb565::BLACK)
     .build();
+
+const TEXT_STYLE_WARNING_NOTIFICATION: mono_font::MonoTextStyle<Rgb565> =
+    mono_font::MonoTextStyleBuilder::new()
+        .font(&profont::PROFONT_18_POINT)
+        .text_color(Rgb565::WHITE)
+        .background_color(Rgb565::CSS_DARK_RED)
+        .build();
 
 const TEXT_STYLE_PARAMETER_NAME: mono_font::MonoTextStyle<Rgb565> =
     mono_font::MonoTextStyleBuilder::new()
@@ -316,16 +324,110 @@ pub fn draw_parameter_dual(
     );
 }
 
+#[derive(Debug, PartialEq)]
+enum Warning {
+    None,
+    Test,
+    AuxVoltageLow,
+    BatteryHot,
+    BatteryCriticallyLow,
+    BatteryCriticallyHigh,
+    HeaterOverTemperature,
+    PrechargeFailed,
+    ObcDcvMismatch,
+    DcdcDown,
+    DcdcAuxMismatch,
+    DcdcZeroCurrent,
+    InverterHot,
+    MotorHot,
+    IpdmMcReqFail,
+    IpdmGroup1OC,
+    IpdmGroup2OC,
+    IpdmGroup3OC,
+    IpdmGroup4OC,
+}
+
+impl Warning {
+    fn to_text<T: Write>(&self, s: &mut T) {
+        match self {
+            Warning::None => write!(s, ""),
+            Warning::Test => write!(s, "Test warning"),
+            Warning::AuxVoltageLow => write!(s, "Aux battery low"),
+            Warning::InverterHot => write!(s, "Inverter hot"),
+            Warning::MotorHot => write!(s, "Motor hot"),
+            a => core::fmt::write(s, format_args!("{:?}", self)),
+        };
+    }
+}
+
+fn generate_warning(hw: &mut dyn HardwareInterface) -> Warning {
+    if get_parameter(ParameterId::InverterT).value >= 60.0 {
+        Warning::InverterHot
+    } else if get_parameter(ParameterId::MotorT).value >= 60.0 {
+        Warning::MotorHot
+    } else if get_parameter(ParameterId::BatteryTMax).value >= 50.0 {
+        Warning::BatteryHot
+    } else if get_parameter(ParameterId::BatteryVMin).value <= 3.0 {
+        Warning::BatteryCriticallyLow
+    } else if get_parameter(ParameterId::BatteryVMax).value >= 4.20 {
+        Warning::BatteryCriticallyHigh
+    } else if get_parameter(ParameterId::AuxVoltage).value <= 11.5 {
+        Warning::AuxVoltageLow
+    } else if get_parameter(ParameterId::HeaterT).value >= 100.0 {
+        Warning::HeaterOverTemperature
+    } else if get_parameter(ParameterId::PrechargeFailed).value >= 0.5 {
+        Warning::PrechargeFailed
+    } else if get_parameter(ParameterId::MainContactor).value >= 0.5 &&
+            (get_parameter(ParameterId::ObcDcv).value < 150.0 ||
+                get_parameter(ParameterId::ObcDcv).value > 400.0) {
+        Warning::ObcDcvMismatch
+    } else if get_parameter(ParameterId::MainContactor).value >= 0.5 &&
+            get_parameter(ParameterId::DcdcStatus).value != 0x22 as f32 {
+        Warning::DcdcDown
+    } else if (get_parameter(ParameterId::DcdcAuxVoltage).value - get_parameter(ParameterId::AuxVoltage).value).abs() > 1.0 {
+        Warning::DcdcAuxMismatch
+    } else if get_parameter(ParameterId::IpdmReqMC).value > 0.5 &&
+            get_parameter(ParameterId::MainContactor).value < 0.5 {
+        Warning::IpdmMcReqFail
+    } else if get_parameter(ParameterId::IpdmGroup1OC).value > 0.5 {
+        Warning::IpdmGroup1OC
+    } else if get_parameter(ParameterId::IpdmGroup2OC).value > 0.5 {
+        Warning::IpdmGroup2OC
+    } else if get_parameter(ParameterId::IpdmGroup3OC).value > 0.5 {
+        Warning::IpdmGroup3OC
+    } else if get_parameter(ParameterId::IpdmGroup4OC).value > 0.5 {
+        Warning::IpdmGroup4OC
+    } else if get_parameter(ParameterId::MainContactor).value >= 0.5 &&
+            get_parameter(ParameterId::DcdcCurrent).value < 0.2 as f32 {
+        Warning::DcdcZeroCurrent
+    } else if hw.millis() < 2500 {
+        Warning::Test
+    } else {
+        Warning::None
+    }
+}
+
 static mut main_view_drawn_cruise_requested: f32 = f32::NAN;
 static mut main_view_drawn_cruise_active: f32 = f32::NAN;
+static mut main_view_drawn_warning: Warning = Warning::None;
 
 static main_view: View = View {
-    on_update: |redraw: bool, state: &mut MainState, hw: &mut dyn HardwareInterface| {
+    on_update: |redraw0: bool, state: &mut MainState, hw: &mut dyn HardwareInterface| {
+        let mut redraw = redraw0;
+
         let cruise_changed = unsafe {
             main_view_drawn_cruise_requested !=
                 get_parameter(ParameterId::CruiseRequested).value ||
             main_view_drawn_cruise_active !=
                 get_parameter(ParameterId::CruiseActive).value };
+
+        let warning = generate_warning(hw);
+
+        let warning_changed = unsafe { main_view_drawn_warning != warning };
+
+        if warning_changed {
+            redraw = true;
+        }
 
         if redraw {
             draw_brand_background(hw);
@@ -457,12 +559,27 @@ static main_view: View = View {
             redraw,
             hw,
         );
-        draw_parameter(
-            ParameterId::AuxVoltage,
-            TEXT_TOP_ROW_Y + PARAM_ROW_HEIGHT * 7,
-            redraw,
-            hw,
-        );
+
+        if warning == Warning::None {
+            draw_parameter(
+                ParameterId::AuxVoltage,
+                TEXT_TOP_ROW_Y + PARAM_ROW_HEIGHT * 7,
+                redraw,
+                hw,
+            );
+        } else {
+            let mut warning_text: ArrayString<32> = ArrayString::new();
+            warning.to_text(&mut warning_text);
+            hw.display_draw_text(
+                &warning_text,
+                Point::new(320/2, TEXT_TOP_ROW_Y + PARAM_ROW_HEIGHT * 7),
+                TEXT_STYLE_WARNING_NOTIFICATION,
+                eg::text::Alignment::Center,
+            );
+        }
+        unsafe {
+            main_view_drawn_warning = warning;
+        }
     },
 
     on_button: |event: ButtonEvent,

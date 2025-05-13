@@ -56,9 +56,17 @@ pub enum ParameterId {
     DcdcStatus = 45,
     DcdcAuxVoltage = 46,
     DcdcCurrent = 47,
+    InverterT = 48,
+    MotorT = 49,
+    IpdmIgnition = 50,
+    IpdmReqMC = 51,
+    IpdmGroup1OC = 52,
+    IpdmGroup2OC = 53,
+    IpdmGroup3OC = 54,
+    IpdmGroup4OC = 55,
 }
 
-static mut PARAMETERS: [Parameter<ParameterId>; 48] = [
+static mut PARAMETERS: [Parameter<ParameterId>; 56] = [
     Parameter {
         id: ParameterId::TicksMs,
         display_name: "Ticks",
@@ -815,6 +823,132 @@ static mut PARAMETERS: [Parameter<ParameterId>; 48] = [
                 (((data[2] as u16) << 8) | data[3] as u16) as f32
             }),
             scale: 0.1,
+        }),
+        report_map: None,
+        update_timestamp: 0,
+    },
+    Parameter {
+        id: ParameterId::InverterT,
+        display_name: "InverterT",
+        value: f32::NAN,
+        decimals: 0,
+        unit: "degC",
+        can_map: Some(CanMap {
+            id: bxcan::Id::Standard(StandardId::new(0x55a).unwrap()),
+            bits: CanBitSelection::Function(|data: &[u8]| -> f32 {
+                let fahrenheit = data[2];
+                (fahrenheit as f32 - 32.0) * 5.0 / 9.0
+            }),
+            scale: 1.0,
+        }),
+        report_map: Some(ReportMap {
+            name: "it",
+            decimals: 0,
+            scale: 1.0,
+        }),
+        update_timestamp: 0,
+    },
+    Parameter {
+        id: ParameterId::MotorT,
+        display_name: "MotorT",
+        value: f32::NAN,
+        decimals: 0,
+        unit: "degC",
+        can_map: Some(CanMap {
+            id: bxcan::Id::Standard(StandardId::new(0x55a).unwrap()),
+            bits: CanBitSelection::Function(|data: &[u8]| -> f32 {
+                let fahrenheit = data[1];
+                (fahrenheit as f32 - 32.0) * 5.0 / 9.0
+            }),
+            scale: 1.0,
+        }),
+        report_map: Some(ReportMap {
+            name: "mt",
+            decimals: 0,
+            scale: 1.0,
+        }),
+        update_timestamp: 0,
+    },
+    Parameter {
+        id: ParameterId::IpdmIgnition,
+        display_name: "IPDM Ignition",
+        value: f32::NAN,
+        decimals: 0,
+        unit: "",
+        can_map: Some(CanMap {
+            id: bxcan::Id::Standard(StandardId::new(0x200).unwrap()),
+            bits: CanBitSelection::Bit(6),
+            scale: 1.0,
+        }),
+        report_map: None,
+        update_timestamp: 0,
+    },
+    Parameter {
+        id: ParameterId::IpdmReqMC,
+        display_name: "IPDM req MC",
+        value: f32::NAN,
+        decimals: 0,
+        unit: "",
+        can_map: Some(CanMap {
+            id: bxcan::Id::Standard(StandardId::new(0x200).unwrap()),
+            bits: CanBitSelection::Bit(0),
+            scale: 1.0,
+        }),
+        report_map: None,
+        update_timestamp: 0,
+    },
+    Parameter {
+        id: ParameterId::IpdmGroup1OC,
+        display_name: "IPDM OC 1",
+        value: f32::NAN,
+        decimals: 0,
+        unit: "",
+        can_map: Some(CanMap {
+            id: bxcan::Id::Standard(StandardId::new(0x200).unwrap()),
+            bits: CanBitSelection::Bit(56),
+            scale: 1.0,
+        }),
+        report_map: None,
+        update_timestamp: 0,
+    },
+    Parameter {
+        id: ParameterId::IpdmGroup2OC,
+        display_name: "IPDM OC 2",
+        value: f32::NAN,
+        decimals: 0,
+        unit: "",
+        can_map: Some(CanMap {
+            id: bxcan::Id::Standard(StandardId::new(0x200).unwrap()),
+            bits: CanBitSelection::Bit(57),
+            scale: 1.0,
+        }),
+        report_map: None,
+        update_timestamp: 0,
+    },
+    Parameter {
+        id: ParameterId::IpdmGroup3OC,
+        display_name: "IPDM OC 3",
+        value: f32::NAN,
+        decimals: 0,
+        unit: "",
+        can_map: Some(CanMap {
+            id: bxcan::Id::Standard(StandardId::new(0x200).unwrap()),
+            bits: CanBitSelection::Bit(58),
+            scale: 1.0,
+        }),
+        report_map: None,
+        update_timestamp: 0,
+    },
+    Parameter {
+        id: ParameterId::IpdmGroup4OC,
+        display_name: "IPDM OC 4",
+        value: f32::NAN,
+        decimals: 0,
+        unit: "",
+        can_map: Some(CanMap {
+            id: bxcan::Id::Standard(StandardId::new(0x200).unwrap()),
+            bits: CanBitSelection::Bit(59),
+            scale: 1.0,
         }),
         report_map: None,
         update_timestamp: 0,
