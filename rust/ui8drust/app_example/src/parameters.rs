@@ -64,9 +64,10 @@ pub enum ParameterId {
     IpdmGroup2OC = 53,
     IpdmGroup3OC = 54,
     IpdmGroup4OC = 55,
+    Precharging = 56,
 }
 
-static mut PARAMETERS: [Parameter<ParameterId>; 56] = [
+static mut PARAMETERS: [Parameter<ParameterId>; 57] = [
     Parameter {
         id: ParameterId::TicksMs,
         display_name: "Ticks",
@@ -948,6 +949,20 @@ static mut PARAMETERS: [Parameter<ParameterId>; 56] = [
         can_map: Some(CanMap {
             id: bxcan::Id::Standard(StandardId::new(0x200).unwrap()),
             bits: CanBitSelection::Bit(59),
+            scale: 1.0,
+        }),
+        report_map: None,
+        update_timestamp: 0,
+    },
+    Parameter {
+        id: ParameterId::Precharging,
+        display_name: "Precharging",
+        value: f32::NAN,
+        decimals: 0,
+        unit: "",
+        can_map: Some(CanMap {
+            id: bxcan::Id::Standard(StandardId::new(0x100).unwrap()),
+            bits: CanBitSelection::Bit(5),
             scale: 1.0,
         }),
         report_map: None,

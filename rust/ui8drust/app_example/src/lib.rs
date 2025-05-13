@@ -387,7 +387,8 @@ fn generate_warning(hw: &mut dyn HardwareInterface) -> Warning {
     } else if (get_parameter(ParameterId::DcdcAuxVoltage).value - get_parameter(ParameterId::AuxVoltage).value).abs() > 1.0 {
         Warning::DcdcAuxMismatch
     } else if get_parameter(ParameterId::IpdmReqMC).value > 0.5 &&
-            get_parameter(ParameterId::MainContactor).value < 0.5 {
+            get_parameter(ParameterId::MainContactor).value < 0.5 &&
+            get_parameter(ParameterId::Precharging).value < 0.5 {
         Warning::IpdmMcReqFail
     } else if get_parameter(ParameterId::IpdmGroup1OC).value > 0.5 {
         Warning::IpdmGroup1OC
