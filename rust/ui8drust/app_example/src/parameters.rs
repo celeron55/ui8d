@@ -46,9 +46,19 @@ pub enum ParameterId {
     Speed = 35,
     CruiseActive = 36,
     CruiseRequested = 37,
+    ControlPilotDutyPercent = 38,
+    AcObcState = 39,
+    BmsMaxChargeCurrent = 40,
+    BmsMaxDischargeCurrent = 41,
+    ObcChargeCurrentRequest = 42,
+    ObcChargeVoltageRequest = 43,
+    ObcEvsePwm = 44,
+    DcdcStatus = 45,
+    DcdcAuxVoltage = 46,
+    DcdcCurrent = 47,
 }
 
-static mut PARAMETERS: [Parameter<ParameterId>; 38] = [
+static mut PARAMETERS: [Parameter<ParameterId>; 48] = [
     Parameter {
         id: ParameterId::TicksMs,
         display_name: "Ticks",
@@ -383,7 +393,7 @@ static mut PARAMETERS: [Parameter<ParameterId>; 38] = [
     },
     Parameter {
         id: ParameterId::ObcDcv,
-        display_name: "OBC V DC",
+        display_name: "OBC DC V",
         value: f32::NAN,
         decimals: 0,
         unit: "V",
@@ -401,10 +411,10 @@ static mut PARAMETERS: [Parameter<ParameterId>; 38] = [
     },
     Parameter {
         id: ParameterId::ObcDcc,
-        display_name: "OBC A DC",
+        display_name: "OBC DC A",
         value: f32::NAN,
         decimals: 1,
-        unit: "A",
+        unit: "Adc",
         can_map: Some(CanMap {
             id: bxcan::Id::Standard(StandardId::new(0x389).unwrap()),
             bits: CanBitSelection::Uint8(2),
@@ -419,7 +429,7 @@ static mut PARAMETERS: [Parameter<ParameterId>; 38] = [
     },
     Parameter {
         id: ParameterId::AcVoltage,
-        display_name: "AC voltage",
+        display_name: "OBC AC V",
         value: f32::NAN,
         decimals: 0,
         unit: "V",
@@ -646,6 +656,167 @@ static mut PARAMETERS: [Parameter<ParameterId>; 38] = [
             decimals: 0,
             scale: 1.0,
         }),
+        update_timestamp: 0,
+    },
+    Parameter {
+        id: ParameterId::ControlPilotDutyPercent,
+        display_name: "Foccci CP PWM",
+        value: f32::NAN,
+        decimals: 0,
+        unit: "%",
+        can_map: Some(CanMap {
+            id: bxcan::Id::Standard(StandardId::new(0x506).unwrap()),
+            bits: CanBitSelection::Uint8(1),
+            scale: 1.0,
+        }),
+        report_map: Some(ReportMap {
+            name: "cp",
+            decimals: 0,
+            scale: 1.0,
+        }),
+        update_timestamp: 0,
+    },
+    Parameter {
+        // Published by ipdm56 for usage by Foccci
+        // Foccci dictates this value as:
+        // {IDLE=0, LOCK=1, CHARGE=2, PAUSE=3, COMPLETE=4, ERROR=5}
+        id: ParameterId::AcObcState,
+        display_name: "AcObcSt->Focci",
+        value: f32::NAN,
+        decimals: 0,
+        unit: "",
+        can_map: Some(CanMap {
+            id: bxcan::Id::Standard(StandardId::new(0x404).unwrap()),
+            bits: CanBitSelection::Uint8(1),
+            scale: 1.0,
+        }),
+        report_map: Some(ReportMap {
+            name: "aos",
+            decimals: 0,
+            scale: 1.0,
+        }),
+        update_timestamp: 0,
+    },
+    Parameter {
+        id: ParameterId::BmsMaxChargeCurrent,
+        display_name: "Max charge",
+        value: f32::NAN,
+        decimals: 1,
+        unit: "A",
+        can_map: Some(CanMap {
+            id: bxcan::Id::Standard(StandardId::new(0x102).unwrap()),
+            bits: CanBitSelection::Function(|data: &[u8]| -> f32 {
+                (((data[2] as u16) << 8) | data[3] as u16) as f32
+            }),
+            scale: 0.1,
+        }),
+        report_map: None,
+        update_timestamp: 0,
+    },
+    Parameter {
+        id: ParameterId::BmsMaxDischargeCurrent,
+        display_name: "Max discharge",
+        value: f32::NAN,
+        decimals: 1,
+        unit: "A",
+        can_map: Some(CanMap {
+            id: bxcan::Id::Standard(StandardId::new(0x102).unwrap()),
+            bits: CanBitSelection::Function(|data: &[u8]| -> f32 {
+                (((data[4] as u16) << 8) | data[5] as u16) as f32
+            }),
+            scale: 0.1,
+        }),
+        report_map: None,
+        update_timestamp: 0,
+    },
+    Parameter {
+        id: ParameterId::ObcChargeCurrentRequest,
+        display_name: "OBC req A",
+        value: f32::NAN,
+        decimals: 1,
+        unit: "A",
+        can_map: Some(CanMap {
+            id: bxcan::Id::Standard(StandardId::new(0x286).unwrap()),
+            bits: CanBitSelection::Uint8(2),
+            scale: 0.1,
+        }),
+        report_map: None,
+        update_timestamp: 0,
+    },
+    Parameter {
+        id: ParameterId::ObcChargeVoltageRequest,
+        display_name: "OBC req V",
+        value: f32::NAN,
+        decimals: 1,
+        unit: "V",
+        can_map: Some(CanMap {
+            id: bxcan::Id::Standard(StandardId::new(0x286).unwrap()),
+            bits: CanBitSelection::Function(|data: &[u8]| -> f32 {
+                (((data[0] as u16) << 8) | data[1] as u16) as f32
+            }),
+            scale: 0.1,
+        }),
+        report_map: None,
+        update_timestamp: 0,
+    },
+    Parameter {
+        id: ParameterId::ObcEvsePwm,
+        display_name: "OBC CP PWM",
+        value: f32::NAN,
+        decimals: 0,
+        unit: "%",
+        can_map: Some(CanMap {
+            id: bxcan::Id::Standard(StandardId::new(0x38a).unwrap()),
+            bits: CanBitSelection::Uint8(3),
+            scale: 1.0,
+        }),
+        report_map: None,
+        update_timestamp: 0,
+    },
+    Parameter {
+        id: ParameterId::DcdcStatus,
+        display_name: "DCDC status",
+        value: f32::NAN,
+        decimals: 0,
+        unit: "",
+        can_map: Some(CanMap {
+            id: bxcan::Id::Standard(StandardId::new(0x377).unwrap()),
+            bits: CanBitSelection::Uint8(7),
+            scale: 1.0,
+        }),
+        report_map: None,
+        update_timestamp: 0,
+    },
+    Parameter {
+        id: ParameterId::DcdcAuxVoltage,
+        display_name: "DCDC aux V",
+        value: f32::NAN,
+        decimals: 2,
+        unit: "V",
+        can_map: Some(CanMap {
+            id: bxcan::Id::Standard(StandardId::new(0x377).unwrap()),
+            bits: CanBitSelection::Function(|data: &[u8]| -> f32 {
+                (((data[0] as u16) << 8) | data[1] as u16) as f32
+            }),
+            scale: 0.01,
+        }),
+        report_map: None,
+        update_timestamp: 0,
+    },
+    Parameter {
+        id: ParameterId::DcdcCurrent,
+        display_name: "DCDC current",
+        value: f32::NAN,
+        decimals: 1,
+        unit: "A",
+        can_map: Some(CanMap {
+            id: bxcan::Id::Standard(StandardId::new(0x377).unwrap()),
+            bits: CanBitSelection::Function(|data: &[u8]| -> f32 {
+                (((data[2] as u16) << 8) | data[3] as u16) as f32
+            }),
+            scale: 0.1,
+        }),
+        report_map: None,
         update_timestamp: 0,
     },
 ];

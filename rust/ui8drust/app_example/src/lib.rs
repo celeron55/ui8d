@@ -803,13 +803,19 @@ impl MainState {
             let power_output_state = wanted_output_state == true
                 && (ms_since_last_hvac_power_output_wanted_off > 5000
                     || ms_since_last_hvac_power_output_wanted_off < 0);
+
+            // Is this connected to something?
             hw.set_digital_output(DigitalOutput::Wakeup, power_output_state);
 
+            // This seems to be connected to the low side of a relay coil which
+            // turns on the HVAC fan and the ignition signal
+            hw.set_digital_output(DigitalOutput::Pwmout1, !power_output_state); // Active low
+
             if get_parameter(ParameterId::HvacCountdown).value > 0.0 {
-                // Request ipdm1 to turn on the heater and pump
+                // Request ipdm to turn on the heater and pump
                 self.send_setting_frame(hw, 0x570, 2, 0, 1);
             } else {
-                // Request ipdm1 to turn off the heater and pump
+                // Request ipdm to turn off the heater and pump
                 self.send_setting_frame(hw, 0x570, 2, 0, 0);
             }
         }
@@ -925,7 +931,6 @@ impl MainState {
     }
 
     pub fn on_mainboard_rx(&mut self, buf: &str) {
-        info!("MAINBOARD: {:?}", buf);
         self.mainboard_log_display.append(buf);
     }
 
