@@ -176,6 +176,7 @@ define_parameters! {
     },
     AcChargeCurrentSetting {
         display_name: "AcCurSet",
+        value: 10.0,
         unit: "A",
         report_map: ReportMap { name: "acc", decimals: 0, scale: 1.0 },
     },

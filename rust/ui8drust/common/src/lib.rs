@@ -171,6 +171,7 @@ pub fn set_parameters(params: &'static mut [Parameter<'static>]) {
 #[macro_export] macro_rules! define_parameters {
     ($($name:ident {
         display_name: $display_name:expr,
+        $(value: $value:expr,)?
         $(decimals: $decimals:expr,)?
         unit: $unit:expr,
         $(can_map: $can_map:expr,)?
@@ -207,7 +208,12 @@ pub fn set_parameters(params: &'static mut [Parameter<'static>]) {
                 Parameter {
                     id: ParameterId::$name as usize,
                     display_name: $display_name,
-                    value: f32::NAN,
+                    value: {
+                        #[allow(unused_variables)]
+                        let value: f32 = f32::NAN;
+                        $(let value = $value;)?
+                        value
+                    },
                     decimals: {
                         #[allow(unused_variables)]
                         let decimals: u8 = 0;
