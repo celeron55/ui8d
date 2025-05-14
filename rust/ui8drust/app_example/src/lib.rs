@@ -1059,35 +1059,7 @@ impl MainState {
             }
         }
 
-        for (i, param) in get_parameters().iter_mut().enumerate() {
-            if let Some(can_map) = &param.can_map {
-                if let Some(data) = frame.data() {
-                    if can_map.id == frame.id() {
-                        match can_map.bits {
-                            CanBitSelection::Bit(bit_i) => {
-                                param.set_value((data[(bit_i as usize) / 8] & (1 << (bit_i % 8)))
-                                        as f32 * can_map.scale,
-                                    self.last_millis);
-                            }
-                            CanBitSelection::Uint8(byte_i) => {
-                                param.set_value((data[byte_i as usize] as u8) as
-                                        f32 * can_map.scale,
-                                    self.last_millis);
-                            }
-                            CanBitSelection::Int8(byte_i) => {
-                                param.set_value((data[byte_i as usize] as i8) as
-                                        f32 * can_map.scale,
-                                    self.last_millis);
-                            }
-                            CanBitSelection::Function(function) => {
-                                param.set_value(function(data) * can_map.scale,
-                                    self.last_millis);
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        update_parameters_on_can(frame, self.last_millis);
     }
 
     pub fn switch_to_log_view(&mut self) {
