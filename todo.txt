@@ -1,6 +1,9 @@
 UI8D to-do
 ==========
 
+Kehitä softaa:
+- Käytä makroja parametrien määrittelyyn (ks. Grok)
+
 Korjaa ongelmat seuraavaan versioon:
 - +3.3V kiskon jännite on 4.24V
 	* U305 ja U308 on väärällä pinnijärjestyksellä
