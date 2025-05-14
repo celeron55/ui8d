@@ -122,8 +122,8 @@ pub struct ReportMap<'a> {
     pub scale: f32,
 }
 
-pub struct Parameter<'a, ID> {
-    pub id: ID,
+pub struct Parameter<'a> {
+    pub id: usize,
     pub display_name: &'a str,
     pub value: f32,
     pub decimals: u8,
@@ -133,9 +133,9 @@ pub struct Parameter<'a, ID> {
     pub update_timestamp: u64,
 }
 
-impl<'a, ID> Parameter<'a, ID> {
+impl<'a> Parameter<'a> {
     pub const fn new(
-        id: ID,
+        id: usize,
         display_name: &'a str,
         value: f32,
         decimals: u8,
@@ -160,3 +160,100 @@ impl<'a, ID> Parameter<'a, ID> {
     }
 }
 
+pub static mut PARAMETERS: Option<&'static mut [Parameter<'static>]> = None;
+
+pub fn set_parameters(params: &'static mut [Parameter<'static>]) {
+    unsafe {
+        PARAMETERS = Some(params);
+    }
+}
+
+#[macro_export] macro_rules! define_parameters {
+    ($($name:ident {
+        display_name: $display_name:expr,
+        $(decimals: $decimals:expr,)?
+        unit: $unit:expr,
+        $(can_map: $can_map:expr,)?
+        $(report_map: $report_map:expr,)?
+    }),* $(,)?) => {
+        pub const NUM_PARAMETERS: usize = {
+            let mut count = 0;
+            $(let _ = stringify!($name); count += 1;)*
+            count
+        };
+
+        #[repr(usize)]
+        #[derive(Debug, Clone, Copy, PartialEq)]
+        pub enum ParameterId {
+            $($name),*
+        }
+
+        // Implement conversion from usize to ParameterId using array lookup
+        const PARAMETER_IDS: [ParameterId; NUM_PARAMETERS] = [
+            $(ParameterId::$name),*
+        ];
+        impl ParameterId {
+            pub fn from_usize(value: usize) -> Option<Self> {
+                if value < PARAMETER_IDS.len() {
+                    Some(PARAMETER_IDS[value])
+                } else {
+                    None
+                }
+            }
+        }
+
+        pub static mut PARAMETERS: [Parameter; NUM_PARAMETERS] = [
+            $(
+                Parameter {
+                    id: ParameterId::$name as usize,
+                    display_name: $display_name,
+                    value: f32::NAN,
+                    decimals: {
+                        #[allow(unused_variables)]
+                        let decimals: u8 = 0;
+                        $(let decimals = $decimals;)?
+                        decimals
+                    },
+                    unit: $unit,
+                    can_map: {
+                        #[allow(unused_variables)]
+                        let can_map: Option<CanMap> = None;
+                        $(let can_map = Some($can_map);)?
+                        can_map
+                    },
+                    report_map: {
+                        #[allow(unused_variables)]
+                        let report_map: Option<ReportMap> = None;
+                        $(let report_map = Some($report_map);)?
+                        report_map
+                    },
+                    update_timestamp: 0,
+                }
+            ),*
+        ];
+
+        // Accessor using ParameterId enum
+		pub fn get_parameter(id: ParameterId) -> &'static mut Parameter<'static> {
+		    get_parameter_id(id as usize)
+		}
+
+        // Initialization function: Call this at start of main() or whatever
+        pub fn init_parameters() {
+            unsafe {
+                $crate::set_parameters(&mut PARAMETERS);
+            }
+        }
+    };
+}
+
+pub fn get_parameters() -> &'static mut [Parameter<'static>] {
+    unsafe {
+        PARAMETERS.as_mut().expect("Parameters not initialized")
+    }
+}
+
+pub fn get_parameter_id(id: usize) -> &'static mut Parameter<'static> {
+    unsafe {
+        return &mut PARAMETERS.as_mut().expect("Parameters not initialized")[id];
+    }
+}

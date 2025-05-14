@@ -66,7 +66,7 @@ const TEXT_STYLE_WARNING_NOTIFICATION: mono_font::MonoTextStyle<Rgb565> =
     mono_font::MonoTextStyleBuilder::new()
         .font(&profont::PROFONT_18_POINT)
         .text_color(Rgb565::WHITE)
-        .background_color(Rgb565::CSS_DARK_RED)
+        .background_color(Rgb565::RED)
         .build();
 
 const TEXT_STYLE_PARAMETER_NAME: mono_font::MonoTextStyle<Rgb565> =
@@ -647,9 +647,9 @@ fn draw_all_params_view_bg(state: &mut MainState, hw: &mut dyn HardwareInterface
 fn draw_all_params_view_fg(redraw: bool, state: &mut MainState, hw: &mut dyn HardwareInterface) {
     for i in 0..PARAMS_PER_PAGE {
         let i1 = state.all_params_view_page * PARAMS_PER_PAGE + i;
-        if let Ok(id) = ParameterId::try_from(i1) {
+        if let Some(id) = ParameterId::from_usize(i1) {
             draw_parameter(
-                ParameterId::try_from(i1).unwrap(),
+                ParameterId::from_usize(i1).unwrap(),
                 TEXT_TOP_ROW_Y + PARAM_ROW_HEIGHT * i as i32,
                 redraw,
                 hw,
@@ -803,6 +803,8 @@ pub struct MainState {
 
 impl MainState {
     pub fn new() -> Self {
+        init_parameters();
+
         Self {
             update_counter: 0,
             log_display: LogDisplay::new(),
@@ -876,15 +878,6 @@ impl MainState {
     }
 
     fn update_view(&mut self, hw: &mut dyn HardwareInterface) {
-        // This check happens, and has to happen, on the first update, and if
-        // the parameter ids are not consistent, the view has to be changed to
-        // some view which doesn't use get_parameters() (like the log view), in
-        // order to not cause a panic right away.
-        if self.update_counter == 0 && !check_parameter_id_consistency() {
-            error!("Parameter ID consistency error");
-            self.switch_to_log_view();
-        }
-
         // Call view.on_update()
         ((views[self.current_view]).on_update)(self.update_counter == 0, self, hw);
     }
@@ -986,7 +979,7 @@ impl MainState {
         match self.http_process.update(hw) {
             HttpUpdateStatus::Finished(response) => {
                 if response.body.contains("request_hvac_on") {
-                    get_parameters()[usize::from(ParameterId::HvacCountdown)].set_value(180.0,
+                    get_parameters()[ParameterId::HvacCountdown as usize].set_value(180.0,
                             hw.millis());
                 }
             }
