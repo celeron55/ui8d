@@ -169,8 +169,8 @@ define_parameters! {
         },
         report_map: ReportMap { name: "bccv", decimals: 0, scale: 1.0 },
     },
-    Ipdm1ChargeCompleteVoltageSetting {
-        display_name: "Ipdm1ChgCompV",
+    IpdmChargeCompleteVoltageSetting {
+        display_name: "IpdmChgCompV",
         unit: "mV",
         report_map: ReportMap { name: "i1ccv", decimals: 0, scale: 1.0 },
     },
@@ -179,8 +179,8 @@ define_parameters! {
         unit: "A",
         report_map: ReportMap { name: "acc", decimals: 0, scale: 1.0 },
     },
-    Ipdm1AcChargeCurrentSetting {
-        display_name: "Ipdm1AcCurSet",
+    IpdmAcChargeCurrentSetting {
+        display_name: "IpdmAcCurSet",
         unit: "A",
         report_map: ReportMap { name: "i1acc", decimals: 0, scale: 1.0 },
     },
@@ -416,6 +416,15 @@ define_parameters! {
         can_map: CanMap {
             id: Id::Standard(StandardId::new(0x200).unwrap()),
             bits: CanBitSelection::Bit(0),
+            scale: 1.0,
+        },
+    },
+    IpdmPcbT {
+        display_name: "IPDM PCB T",
+        unit: "degC",
+        can_map: CanMap {
+            id: Id::Standard(StandardId::new(0x200).unwrap()),
+            bits: CanBitSelection::Int8(5),
             scale: 1.0,
         },
     },

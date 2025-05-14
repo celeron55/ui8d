@@ -341,6 +341,7 @@ enum Warning {
     DcdcZeroCurrent,
     InverterHot,
     MotorHot,
+    IpdmHot,
     IpdmMcReqFail,
     IpdmGroup1OC,
     IpdmGroup2OC,
@@ -391,6 +392,8 @@ fn generate_warning(hw: &mut dyn HardwareInterface) -> Warning {
     } else if (get_parameter(ParameterId::DcdcAuxVoltage).value -
             get_parameter(ParameterId::AuxVoltage).value).abs() > 1.0 {
         Warning::DcdcAuxMismatch
+    } else if get_parameter(ParameterId::IpdmPcbT).value > 60.0 {
+        Warning::IpdmHot
     } else if get_parameter(ParameterId::IpdmReqMC).value > 0.5 &&
             get_parameter(ParameterId::MainContactor).value < 0.5 &&
             get_parameter(ParameterId::Precharging).value < 0.5 {
@@ -943,14 +946,14 @@ impl MainState {
         }
         self.last_charge_config_millis = hw.millis();
 
-        if get_parameter(ParameterId::Ipdm1ChargeCompleteVoltageSetting).value as u16 != CHARGE_COMPLETE_VOLTAGE_SETTING_MV {
+        if get_parameter(ParameterId::IpdmChargeCompleteVoltageSetting).value as u16 != CHARGE_COMPLETE_VOLTAGE_SETTING_MV {
             self.send_setting_frame(hw, 0x570, 1, get_parameter(
-                    ParameterId::Ipdm1ChargeCompleteVoltageSetting).value as u16 / 20,
+                    ParameterId::IpdmChargeCompleteVoltageSetting).value as u16 / 20,
                 CHARGE_COMPLETE_VOLTAGE_SETTING_MV / 20);
         }
 
         let current_ac_charge_current_Ax5 = (get_parameter(
-                ParameterId::Ipdm1AcChargeCurrentSetting).value * 5.0) as u16;
+                ParameterId::IpdmAcChargeCurrentSetting).value * 5.0) as u16;
         let wanted_ac_charge_current_Ax5 = (get_parameter(
                 ParameterId::AcChargeCurrentSetting).value * 5.0) as u16;
 
