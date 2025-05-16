@@ -465,6 +465,179 @@ define_parameters! {
             scale: 1.0,
         },
     },
+    IpdmCurrent1 {
+        display_name: "IPDM group 1",
+        decimals: 3,
+        unit: "A",
+        can_map: CanMap {
+            id: Id::Standard(StandardId::new(0x406).unwrap()),
+            bits: CanBitSelection::BeUnsigned(0, 12),
+            scale: 1.0 / 256.0,
+        },
+    },
+    IpdmCurrent2 {
+        display_name: "IPDM group 2",
+        decimals: 3,
+        unit: "A",
+        can_map: CanMap {
+            id: Id::Standard(StandardId::new(0x406).unwrap()),
+            bits: CanBitSelection::BeUnsigned(12, 12),
+            scale: 1.0 / 256.0,
+        },
+    },
+    IpdmCurrent3 {
+        display_name: "IPDM group 3",
+        decimals: 3,
+        unit: "A",
+        can_map: CanMap {
+            id: Id::Standard(StandardId::new(0x406).unwrap()),
+            bits: CanBitSelection::BeUnsigned(24, 12),
+            scale: 1.0 / 256.0,
+        },
+    },
+    IpdmCurrent4 {
+        display_name: "IPDM group 4",
+        decimals: 3,
+        unit: "A",
+        can_map: CanMap {
+            id: Id::Standard(StandardId::new(0x406).unwrap()),
+            bits: CanBitSelection::BeUnsigned(36, 12),
+            scale: 1.0 / 256.0,
+        },
+    },
+    IpdmCurrentL {
+        display_name: "IPDM group L",
+        decimals: 2,
+        unit: "A",
+        can_map: CanMap {
+            id: Id::Standard(StandardId::new(0x406).unwrap()),
+            bits: CanBitSelection::BeUnsigned(48, 12),
+            scale: 1.0 / 256.0,
+        },
+    },
+    IpdmM1 {
+        display_name: "IPDM M1",
+        decimals: 3,
+        unit: "V",
+        can_map: CanMap {
+            id: Id::Standard(StandardId::new(0x404).unwrap()),
+            bits: CanBitSelection::BeUnsigned(16, 12),
+            scale: 1.0 / 128.0,
+        },
+    },
+    IpdmM2 {
+        display_name: "IPDM M2",
+        decimals: 3,
+        unit: "V",
+        can_map: CanMap {
+            id: Id::Standard(StandardId::new(0x404).unwrap()),
+            bits: CanBitSelection::BeUnsigned(28, 12),
+            scale: 1.0 / 128.0,
+        },
+    },
+    IpdmM3 {
+        display_name: "IPDM M3",
+        decimals: 3,
+        unit: "V",
+        can_map: CanMap {
+            id: Id::Standard(StandardId::new(0x404).unwrap()),
+            bits: CanBitSelection::BeUnsigned(40, 12),
+            scale: 1.0 / 128.0,
+        },
+    },
+    IpdmM4 {
+        display_name: "IPDM M4",
+        decimals: 3,
+        unit: "V",
+        can_map: CanMap {
+            id: Id::Standard(StandardId::new(0x404).unwrap()),
+            bits: CanBitSelection::BeUnsigned(52, 12),
+            scale: 1.0 / 128.0,
+        },
+    },
+    IpdmM5 {
+        display_name: "IPDM M5",
+        decimals: 3,
+        unit: "V",
+        can_map: CanMap {
+            id: Id::Standard(StandardId::new(0x405).unwrap()),
+            bits: CanBitSelection::BeUnsigned(0, 12),
+            scale: 1.0 / 128.0,
+        },
+    },
+    IpdmM6 {
+        display_name: "IPDM M6",
+        decimals: 3,
+        unit: "V",
+        can_map: CanMap {
+            id: Id::Standard(StandardId::new(0x405).unwrap()),
+            bits: CanBitSelection::BeUnsigned(12, 12),
+            scale: 1.0 / 128.0,
+        },
+    },
+    IpdmM7 {
+        display_name: "IPDM M7",
+        unit: "",
+        can_map: CanMap {
+            id: Id::Standard(StandardId::new(0x404).unwrap()),
+            bits: CanBitSelection::Bit(1),
+            scale: 1.0,
+        },
+    },
+    IpdmM8 {
+        display_name: "IPDM M8",
+        unit: "",
+        can_map: CanMap {
+            id: Id::Standard(StandardId::new(0x404).unwrap()),
+            bits: CanBitSelection::Bit(2),
+            scale: 1.0,
+        },
+    },
+    IpdmM9 {
+        display_name: "IPDM M9",
+        unit: "",
+        can_map: CanMap {
+            id: Id::Standard(StandardId::new(0x404).unwrap()),
+            bits: CanBitSelection::Bit(3),
+            scale: 1.0,
+        },
+    },
+    IpdmM10 {
+        display_name: "IPDM M10",
+        unit: "",
+        can_map: CanMap {
+            id: Id::Standard(StandardId::new(0x404).unwrap()),
+            bits: CanBitSelection::Bit(4),
+            scale: 1.0,
+        },
+    },
+    IpdmM11 {
+        display_name: "IPDM M11",
+        unit: "",
+        can_map: CanMap {
+            id: Id::Standard(StandardId::new(0x404).unwrap()),
+            bits: CanBitSelection::Bit(5),
+            scale: 1.0,
+        },
+    },
+    IpdmM12 {
+        display_name: "IPDM M12",
+        unit: "",
+        can_map: CanMap {
+            id: Id::Standard(StandardId::new(0x404).unwrap()),
+            bits: CanBitSelection::Bit(6),
+            scale: 1.0,
+        },
+    },
+    IpdmM13 {
+        display_name: "IPDM M13",
+        unit: "",
+        can_map: CanMap {
+            id: Id::Standard(StandardId::new(0x404).unwrap()),
+            bits: CanBitSelection::Bit(7),
+            scale: 1.0,
+        },
+    },
     PmState {
         display_name: "PmState",
         unit: "",

@@ -347,6 +347,10 @@ enum Warning {
     IpdmGroup2OC,
     IpdmGroup3OC,
     IpdmGroup4OC,
+    IpdmGroup1HighCurrent,
+    IpdmGroup2HighCurrent,
+    IpdmGroup3HighCurrent,
+    IpdmGroup4HighCurrent,
 }
 
 impl Warning {
@@ -406,6 +410,14 @@ fn generate_warning(hw: &mut dyn HardwareInterface) -> Warning {
         Warning::IpdmGroup3OC
     } else if get_parameter(ParameterId::IpdmGroup4OC).value > 0.5 {
         Warning::IpdmGroup4OC
+    } else if get_parameter(ParameterId::IpdmCurrent1).value > 6.0 {
+        Warning::IpdmGroup1HighCurrent
+    } else if get_parameter(ParameterId::IpdmCurrent2).value > 6.0 {
+        Warning::IpdmGroup2HighCurrent
+    } else if get_parameter(ParameterId::IpdmCurrent3).value > 6.0 {
+        Warning::IpdmGroup3HighCurrent
+    } else if get_parameter(ParameterId::IpdmCurrent4).value > 6.0 {
+        Warning::IpdmGroup4HighCurrent
     } else if get_parameter(ParameterId::MainContactor).value >= 0.5 &&
             get_parameter(ParameterId::DcdcCurrent).value < 0.2 as f32 {
         Warning::DcdcZeroCurrent

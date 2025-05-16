@@ -143,11 +143,17 @@ impl CanSimulator {
                 bxcan::Data::new(b"\x0b\xcc\x41\x00\x00\x00\x00\x00").unwrap(),
             ));
         }
-        // Ipdm56
+        // Ipdm56v2
         if self.i % 26 == 24 {
             self.txbuf.push(bxcan::Frame::new_data(
                 bxcan::StandardId::new(0x200).unwrap(),
                 bxcan::Data::new(b"\x89\x0b\xa4\x00\x00\x19\x00\x00").unwrap(),
+            ));
+        }
+        if self.i % 26 == 25 {
+            self.txbuf.push(bxcan::Frame::new_data(
+                bxcan::StandardId::new(0x406).unwrap(),
+                bxcan::Data::new(b"\x10\x01\x00\x10\x01\x00\x10\x00").unwrap(),
             ));
         }
 
