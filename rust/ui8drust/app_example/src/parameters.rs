@@ -301,7 +301,15 @@ define_parameters! {
         can_map: CanMap {
             id: Id::Standard(StandardId::new(0x398).unwrap()),
             bits: CanBitSelection::Function(|data: &[u8]| -> f32 {
-                if data[5] > 0 { 100.0 } else { 0.0 }
+                if data[5] > 0 {
+                    // [1..2] = 24, 17 (varies smoothly, separate values) (at 50%)
+                    // [1..2] = 53, 36 (varies smoothly, separate values) (at 100%)
+                    // It's probably not actually power, but let's use it
+                    // anyway. At least it looks cool
+                    return (data[1] as f32 * 100.0 / 53.0).min(100.0)
+                } else {
+                    0.0
+                }
             }),
             scale: 1.0,
         },
