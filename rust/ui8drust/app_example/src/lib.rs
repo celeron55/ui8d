@@ -27,6 +27,7 @@ use int_enum::IntEnum;
 use log::{debug, error, info, trace, warn};
 use ringbuffer::RingBuffer;
 use core::fmt::Write;
+use bitvec::prelude::*;
 
 // View definitions
 
@@ -810,6 +811,7 @@ pub struct MainState {
     all_params_view_page: usize,
     last_millis: u64,
     dt_ms: u64,
+    last_can_500ms: u64,
     http_process: http::HttpProcess,
     last_hvac_power_can_send_millis: u64,
     last_hvac_power_output_wanted_off_millis: u64,
@@ -829,6 +831,7 @@ impl MainState {
             all_params_view_page: 0,
             last_millis: 0,
             dt_ms: 0,
+            last_can_500ms: 0,
             http_process: http::HttpProcess::new(),
             last_hvac_power_can_send_millis: 0,
             last_hvac_power_output_wanted_off_millis: 0,
@@ -853,6 +856,11 @@ impl MainState {
         self.update_hvac_power(hw);
 
         self.update_charge_config(hw);
+
+        if hw.millis() - self.last_can_500ms >= 500 {
+            self.last_can_500ms = hw.millis();
+            self.send_can_500ms(hw);
+        }
 
         self.update_http(hw);
 
@@ -895,6 +903,32 @@ impl MainState {
     fn update_view(&mut self, hw: &mut dyn HardwareInterface) {
         // Call view.on_update()
         ((views[self.current_view]).on_update)(self.update_counter == 0, self, hw);
+    }
+
+    fn send_can_500ms(&mut self, hw: &mut dyn HardwareInterface) {
+        {
+            // Publish some stuff
+
+            let mut data = [0u8; 8];
+            let mut bits = data.view_bits_mut::<Msb0>();
+            bits[0..8].store_be(0);
+            bits[8..16].store_be(get_parameter(ParameterId::CabinT).value as i8);
+
+            self.send_normal_frame(hw, 0x404, &data);
+        }
+    }
+
+    fn send_normal_frame(&mut self, hw: &mut dyn HardwareInterface,
+            frame_id: u16, data: &[u8]) {
+        if let Some(frame_data) = bxcan::Data::new(data) {
+            hw.send_can(bxcan::Frame::new_data(
+                bxcan::StandardId::new(frame_id).unwrap(),
+                frame_data
+            ));
+        } else {
+            warn!("-!- send_normal_frame(): Invalid data for frame {:?}: {:?}",
+                    frame_id, data);
+        }
     }
 
     fn send_setting_frame(&mut self, hw: &mut dyn HardwareInterface,

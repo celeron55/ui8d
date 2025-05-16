@@ -152,7 +152,7 @@ impl CanSimulator {
         }
         if self.i % 26 == 25 {
             self.txbuf.push(bxcan::Frame::new_data(
-                bxcan::StandardId::new(0x406).unwrap(),
+                bxcan::StandardId::new(0x206).unwrap(),
                 bxcan::Data::new(b"\x10\x01\x00\x10\x01\x00\x10\x00").unwrap(),
             ));
         }

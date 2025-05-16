@@ -189,7 +189,7 @@ define_parameters! {
         display_name: "AcObcSt->Focci",
         unit: "",
         can_map: CanMap {
-            id: Id::Standard(StandardId::new(0x404).unwrap()),
+            id: Id::Standard(StandardId::new(0x204).unwrap()),
             bits: CanBitSelection::Uint8(1),
             scale: 1.0,
         },
@@ -470,7 +470,7 @@ define_parameters! {
         decimals: 3,
         unit: "A",
         can_map: CanMap {
-            id: Id::Standard(StandardId::new(0x406).unwrap()),
+            id: Id::Standard(StandardId::new(0x206).unwrap()),
             bits: CanBitSelection::BeUnsigned(0, 12),
             scale: 1.0 / 256.0,
         },
@@ -480,7 +480,7 @@ define_parameters! {
         decimals: 3,
         unit: "A",
         can_map: CanMap {
-            id: Id::Standard(StandardId::new(0x406).unwrap()),
+            id: Id::Standard(StandardId::new(0x206).unwrap()),
             bits: CanBitSelection::BeUnsigned(12, 12),
             scale: 1.0 / 256.0,
         },
@@ -490,7 +490,7 @@ define_parameters! {
         decimals: 3,
         unit: "A",
         can_map: CanMap {
-            id: Id::Standard(StandardId::new(0x406).unwrap()),
+            id: Id::Standard(StandardId::new(0x206).unwrap()),
             bits: CanBitSelection::BeUnsigned(24, 12),
             scale: 1.0 / 256.0,
         },
@@ -500,7 +500,7 @@ define_parameters! {
         decimals: 3,
         unit: "A",
         can_map: CanMap {
-            id: Id::Standard(StandardId::new(0x406).unwrap()),
+            id: Id::Standard(StandardId::new(0x206).unwrap()),
             bits: CanBitSelection::BeUnsigned(36, 12),
             scale: 1.0 / 256.0,
         },
@@ -510,7 +510,7 @@ define_parameters! {
         decimals: 2,
         unit: "A",
         can_map: CanMap {
-            id: Id::Standard(StandardId::new(0x406).unwrap()),
+            id: Id::Standard(StandardId::new(0x206).unwrap()),
             bits: CanBitSelection::BeUnsigned(48, 12),
             scale: 1.0 / 256.0,
         },
@@ -520,7 +520,7 @@ define_parameters! {
         decimals: 3,
         unit: "V",
         can_map: CanMap {
-            id: Id::Standard(StandardId::new(0x404).unwrap()),
+            id: Id::Standard(StandardId::new(0x204).unwrap()),
             bits: CanBitSelection::BeUnsigned(16, 12),
             scale: 1.0 / 128.0,
         },
@@ -530,7 +530,7 @@ define_parameters! {
         decimals: 3,
         unit: "V",
         can_map: CanMap {
-            id: Id::Standard(StandardId::new(0x404).unwrap()),
+            id: Id::Standard(StandardId::new(0x204).unwrap()),
             bits: CanBitSelection::BeUnsigned(28, 12),
             scale: 1.0 / 128.0,
         },
@@ -540,7 +540,7 @@ define_parameters! {
         decimals: 3,
         unit: "V",
         can_map: CanMap {
-            id: Id::Standard(StandardId::new(0x404).unwrap()),
+            id: Id::Standard(StandardId::new(0x204).unwrap()),
             bits: CanBitSelection::BeUnsigned(40, 12),
             scale: 1.0 / 128.0,
         },
@@ -550,7 +550,7 @@ define_parameters! {
         decimals: 3,
         unit: "V",
         can_map: CanMap {
-            id: Id::Standard(StandardId::new(0x404).unwrap()),
+            id: Id::Standard(StandardId::new(0x204).unwrap()),
             bits: CanBitSelection::BeUnsigned(52, 12),
             scale: 1.0 / 128.0,
         },
@@ -560,7 +560,7 @@ define_parameters! {
         decimals: 3,
         unit: "V",
         can_map: CanMap {
-            id: Id::Standard(StandardId::new(0x405).unwrap()),
+            id: Id::Standard(StandardId::new(0x205).unwrap()),
             bits: CanBitSelection::BeUnsigned(0, 12),
             scale: 1.0 / 128.0,
         },
@@ -570,7 +570,7 @@ define_parameters! {
         decimals: 3,
         unit: "V",
         can_map: CanMap {
-            id: Id::Standard(StandardId::new(0x405).unwrap()),
+            id: Id::Standard(StandardId::new(0x205).unwrap()),
             bits: CanBitSelection::BeUnsigned(12, 12),
             scale: 1.0 / 128.0,
         },
@@ -579,7 +579,7 @@ define_parameters! {
         display_name: "IPDM M7",
         unit: "",
         can_map: CanMap {
-            id: Id::Standard(StandardId::new(0x404).unwrap()),
+            id: Id::Standard(StandardId::new(0x204).unwrap()),
             bits: CanBitSelection::Bit(1),
             scale: 1.0,
         },
@@ -588,7 +588,7 @@ define_parameters! {
         display_name: "IPDM M8",
         unit: "",
         can_map: CanMap {
-            id: Id::Standard(StandardId::new(0x404).unwrap()),
+            id: Id::Standard(StandardId::new(0x204).unwrap()),
             bits: CanBitSelection::Bit(2),
             scale: 1.0,
         },
@@ -597,7 +597,7 @@ define_parameters! {
         display_name: "IPDM M9",
         unit: "",
         can_map: CanMap {
-            id: Id::Standard(StandardId::new(0x404).unwrap()),
+            id: Id::Standard(StandardId::new(0x204).unwrap()),
             bits: CanBitSelection::Bit(3),
             scale: 1.0,
         },
@@ -606,7 +606,7 @@ define_parameters! {
         display_name: "IPDM M10",
         unit: "",
         can_map: CanMap {
-            id: Id::Standard(StandardId::new(0x404).unwrap()),
+            id: Id::Standard(StandardId::new(0x204).unwrap()),
             bits: CanBitSelection::Bit(4),
             scale: 1.0,
         },
@@ -615,7 +615,7 @@ define_parameters! {
         display_name: "IPDM M11",
         unit: "",
         can_map: CanMap {
-            id: Id::Standard(StandardId::new(0x404).unwrap()),
+            id: Id::Standard(StandardId::new(0x204).unwrap()),
             bits: CanBitSelection::Bit(5),
             scale: 1.0,
         },
@@ -624,7 +624,7 @@ define_parameters! {
         display_name: "IPDM M12",
         unit: "",
         can_map: CanMap {
-            id: Id::Standard(StandardId::new(0x404).unwrap()),
+            id: Id::Standard(StandardId::new(0x204).unwrap()),
             bits: CanBitSelection::Bit(6),
             scale: 1.0,
         },
@@ -633,7 +633,7 @@ define_parameters! {
         display_name: "IPDM M13",
         unit: "",
         can_map: CanMap {
-            id: Id::Standard(StandardId::new(0x404).unwrap()),
+            id: Id::Standard(StandardId::new(0x204).unwrap()),
             bits: CanBitSelection::Bit(7),
             scale: 1.0,
         },
