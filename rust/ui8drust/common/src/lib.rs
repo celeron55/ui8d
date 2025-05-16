@@ -276,9 +276,9 @@ pub fn update_parameters_on_can(frame: bxcan::Frame, millis: u64) {
                 if can_map.id == frame.id() {
                     match can_map.bits {
                         CanBitSelection::Bit(bit_i) => {
-                            let bits = data.view_bits::<Msb0>();
-                            let raw = bits[bit_i as usize .. (bit_i+1) as usize].load_be::<u8>();
-                            param.set_value(raw as f32 * can_map.scale, millis);
+                            param.set_value((data[(bit_i as usize) / 8] & (1 << (bit_i % 8)))
+                                    as f32 * can_map.scale,
+                                millis);
                         }
                         CanBitSelection::BeUnsigned(i0, len) => {
                             let bits = data.view_bits::<Msb0>();
