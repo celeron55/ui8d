@@ -1,10 +1,13 @@
 UI8D to-do
 ==========
 
-Kehitä softaa:
-- Käytä makroja parametrien määrittelyyn (ks. Grok)
+- Tarkista että ipdm-USBiliittimen tunnistaminen softalla toimii
 
 Korjaa ongelmat seuraavaan versioon:
+- Muokkaa ipdm:lle lähtevä TX siten että jos sillä ei lähetä mitään niin se ei
+  häiritse suoraan USB:llä ipdm:lle juttelua. Varmaan vaan ylösveto ja diodit
+  kummastakin lähteestä?
+- Lisää natiiviusbin viereen yhdistetty reset/boot-nappi
 - +3.3V kiskon jännite on 4.24V
 	* U305 ja U308 on väärällä pinnijärjestyksellä
 	* Vin ja Vout on ristissä, GND (pin 1) on oikein
