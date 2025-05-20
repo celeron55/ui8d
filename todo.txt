@@ -56,6 +56,9 @@ Korjaa ongelmat seuraavaan versioon:
 	  sopii
 - Lisää/siirrä lämpöanturi johonkin levyn nurkkaan siten että sillä voi oikeasti
   mitata ympäristön lämpötilaa
+- Käytä Vbat-jännitemittauksessa (ja ehkä muissakin jännitejaoissa) tarkempia
+  vastuksia
+	* Nykyiset on 1% ja niistä voi tulla 2% virhe, joka on 12 voltilla 240mV
 - Muista päivittää versiotunnistusvastusjako
 - Lisää piipperi
 - Move the LoRa module on the middle of the backside, so that the buttons
