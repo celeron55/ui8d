@@ -69,6 +69,11 @@ pub enum AnalogInput {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum DigitalInput {
+    Usb1Connected, // Detects if USB passthrough to RS232 is connected
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum DigitalOutput {
     Wakeup,
     Pwmout1, // TODO: Convert to actual PWM output
@@ -98,6 +103,8 @@ pub trait HardwareInterface {
     fn send_can(&mut self, frame: bxcan::Frame);
 
     fn get_analog_input(&mut self, input: AnalogInput) -> f32;
+
+    fn get_digital_input(&mut self, input: DigitalInput) -> bool;
 
     fn set_digital_output(&mut self, output: DigitalOutput, value: bool);
 }

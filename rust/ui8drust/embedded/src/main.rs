@@ -238,6 +238,8 @@ type WakeupOutputPin = gpio::Pin<'E', 0, gpio::Output<gpio::PushPull>>;
 type Pwmout1Pin = gpio::Pin<'A', 15, gpio::Output<gpio::PushPull>>;
 type Sim7600PowerInhibitPin = gpio::PB9<gpio::Output<gpio::PushPull>>;
 
+type Usb1VbusInputPin = gpio::Pin<'D', 7, gpio::Input>;
+
 struct HardwareImplementation {
     display: &'static mut Display,
     boot0_control_pin: &'static mut Boot0ControlPin,
@@ -248,6 +250,7 @@ struct HardwareImplementation {
     can_tx_buf: ConstGenericRingBuffer<bxcan::Frame, 10>,
     adc_result_vbat: f32,
     adc_result_tpcb: f32,
+    usb1_vbus_pin: Usb1VbusInputPin,
 }
 
 impl HardwareInterface for HardwareImplementation {
@@ -305,7 +308,12 @@ impl HardwareInterface for HardwareImplementation {
         match input {
             AnalogInput::AuxVoltage => self.adc_result_vbat,
             AnalogInput::PcbT => self.adc_result_tpcb,
-            _ => f32::NAN,
+        }
+    }
+
+    fn get_digital_input(&mut self, input: DigitalInput) -> bool {
+        match input {
+            DigitalInput::Usb1Connected => self.usb1_vbus_pin.is_high(),
         }
     }
 
@@ -413,6 +421,10 @@ mod rtic_app {
         let gpioc = cx.device.GPIOC.split();
         let gpiod = cx.device.GPIOD.split();
         let gpioe = cx.device.GPIOE.split();
+
+        // Input pins
+
+        let mut usb1_vbus_pin = gpiod.pd7.into_input();
 
         // Output pins
 
@@ -721,6 +733,7 @@ mod rtic_app {
             can_tx_buf: ConstGenericRingBuffer::new(),
             adc_result_vbat: f32::NAN,
             adc_result_tpcb: f32::NAN,
+            usb1_vbus_pin,
         };
 
         // Schedule tasks
@@ -737,37 +750,37 @@ mod rtic_app {
                 sim7600_txbuf: ConstGenericRingBuffer::new(),
                 mainboard_rxbuf: ConstGenericRingBuffer::new(),
                 mainboard_txbuf: ConstGenericRingBuffer::new(),
-                usb_dev: usb_dev,
-                usb_serial: usb_serial,
-                can1: can1,
+                usb_dev,
+                usb_serial,
+                can1,
                 can_rx_buf: ConstGenericRingBuffer::new(),
                 can_tx_buf: ConstGenericRingBuffer::new(),
-                button1_pin: button1_pin,
-                button2_pin: button2_pin,
-                button3_pin: button3_pin,
-                button4_pin: button4_pin,
-                button5_pin: button5_pin,
-                wkup_pin: wkup_pin,
+                button1_pin,
+                button2_pin,
+                button3_pin,
+                button4_pin,
+                button5_pin,
+                wkup_pin,
                 button_event_queue: ConstGenericRingBuffer::new(),
                 adc_result_ldr: 0,
                 adc_result_vbat: 0.0,
                 adc_result_tpcb: 0.0,
             },
             Local {
-                usart1_rx: usart1_rx,
-                usart1_tx: usart1_tx,
-                usart2_rx: usart2_rx,
-                usart2_tx: usart2_tx,
-                usart3_rx: usart3_rx,
-                //usart3_tx: usart3_tx,
+                usart1_rx,
+                usart1_tx,
+                usart2_rx,
+                usart2_tx,
+                usart3_rx,
+                //usart3_tx,
                 command_accumulator: CommandAccumulator::new(),
-                i2c1: i2c1,
-                adc1: adc1,
-                adc_pa1: adc_pa1,
-                adc_pa2: adc_pa2,
-                adc_pa3: adc_pa3,
-                adc_pb1: adc_pb1,
-                tim4_pwm: tim4_pwm,
+                i2c1,
+                adc1,
+                adc_pa1,
+                adc_pa2,
+                adc_pa3,
+                adc_pb1,
+                tim4_pwm,
                 last_backlight_pwm: 0.2,
                 hw,
             },
@@ -948,7 +961,7 @@ mod rtic_app {
                 cx.local
                     .adc1
                     .convert(cx.local.adc_pa2, SampleTime::Cycles_480) as f32
-                    * 0.00881;
+                    * 0.008864;
 
             // Assign with lowpass
             cx.shared.adc_result_vbat.lock(|v| *v = *v * 0.98 + adc_result_vbat * 0.02);

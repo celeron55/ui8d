@@ -883,6 +883,7 @@ impl MainState {
         get_parameter(ParameterId::TicksMs).set_value(hw.millis() as f32, hw.millis());
         get_parameter(ParameterId::AuxVoltage).set_value(hw.get_analog_input(AnalogInput::AuxVoltage), hw.millis());
         get_parameter(ParameterId::CabinT).set_value(hw.get_analog_input(AnalogInput::PcbT) - 12.0, hw.millis());
+        get_parameter(ParameterId::Usb1Connected).set_value(if hw.get_digital_input(DigitalInput::Usb1Connected) { 1.0 } else { 0.0 }, hw.millis());
 
         get_parameter(ParameterId::ChargePower).set_value(
             if get_parameter(ParameterId::CcsCurrent).value > 1.0 {

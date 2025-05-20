@@ -133,6 +133,10 @@ impl HardwareInterface for HardwareImplementation {
         14.0
     }
 
+    fn get_digital_input(&mut self, input: DigitalInput) -> bool {
+        false
+    }
+
     fn set_digital_output(&mut self, output: DigitalOutput, value: bool) {
         if let Some(old_value) = self.digital_output_states.get(&output) {
             if value != *old_value {

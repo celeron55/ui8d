@@ -410,6 +410,11 @@ define_parameters! {
         },
         report_map: ReportMap { name: "mt", decimals: 0, scale: 1.0 },
     },
+    Usb1Connected {
+        display_name: "USB1 connected",
+        decimals: 0,
+        unit: "",
+    },
     IpdmIgnition {
         display_name: "IPDM Ignition",
         unit: "",
@@ -418,6 +423,7 @@ define_parameters! {
             bits: CanBitSelection::Bit(6),
             scale: 1.0,
         },
+        report_map: ReportMap { name: "ign", decimals: 0, scale: 1.0 },
     },
     IpdmReqMC {
         display_name: "IPDM req MC",
@@ -427,6 +433,7 @@ define_parameters! {
             bits: CanBitSelection::Bit(0),
             scale: 1.0,
         },
+        report_map: ReportMap { name: "ipmcr", decimals: 0, scale: 1.0 },
     },
     IpdmPcbT {
         display_name: "IPDM PCB T",
@@ -482,6 +489,7 @@ define_parameters! {
             bits: CanBitSelection::BeUnsigned(0, 12),
             scale: 1.0 / 256.0,
         },
+        report_map: ReportMap { name: "ipg1", decimals: 2, scale: 1.0 },
     },
     IpdmCurrent2 {
         display_name: "IPDM group 2",
@@ -492,6 +500,7 @@ define_parameters! {
             bits: CanBitSelection::BeUnsigned(12, 12),
             scale: 1.0 / 256.0,
         },
+        report_map: ReportMap { name: "ipg2", decimals: 2, scale: 1.0 },
     },
     IpdmCurrent3 {
         display_name: "IPDM group 3",
@@ -502,6 +511,7 @@ define_parameters! {
             bits: CanBitSelection::BeUnsigned(24, 12),
             scale: 1.0 / 256.0,
         },
+        report_map: ReportMap { name: "ipg3", decimals: 2, scale: 1.0 },
     },
     IpdmCurrent4 {
         display_name: "IPDM group 4",
@@ -512,6 +522,7 @@ define_parameters! {
             bits: CanBitSelection::BeUnsigned(36, 12),
             scale: 1.0 / 256.0,
         },
+        report_map: ReportMap { name: "ipg4", decimals: 2, scale: 1.0 },
     },
     IpdmCurrentL {
         display_name: "IPDM group L",
@@ -522,6 +533,7 @@ define_parameters! {
             bits: CanBitSelection::BeUnsigned(48, 12),
             scale: 1.0 / 256.0,
         },
+        report_map: ReportMap { name: "ipgL", decimals: 2, scale: 1.0 },
     },
     IpdmM1 {
         display_name: "IPDM M1",
