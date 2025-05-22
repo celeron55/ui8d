@@ -1,9 +1,12 @@
 UI8D to-do
 ==========
 
-- Tarkista että ipdm-USBiliittimen tunnistaminen softalla toimii
-
 Korjaa ongelmat seuraavaan versioon:
+- Lisää USB1_VBUS_FLTERED-linjaan alasveto jotta se menee alas kun USB
+  irrotetaan VBatin ollessa ylhäällä. Se ei mene alas edes silloin kun
+  poweroidaan USB2:lla ja Vbat kelluu, koska USB2 syöttää silloin
+  VBAT_UNFUSED-verkkoa ja sieltä D301:n kautta takaperin
+  USB1_VBUS_FLTERED-linjaa
 - Muokkaa ipdm:lle lähtevä TX siten että jos sillä ei lähetä mitään niin se ei
   häiritse suoraan USB:llä ipdm:lle juttelua. Varmaan vaan ylösveto ja diodit
   kummastakin lähteestä?
