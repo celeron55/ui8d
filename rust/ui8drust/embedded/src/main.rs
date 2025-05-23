@@ -593,7 +593,7 @@ mod rtic_app {
                 gpioa.pa9.into_alternate::<7>(),
                 gpioa.pa10.into_alternate::<7>(),
             ),
-            serial::config::Config::default().baudrate(19200.bps()),
+            serial::config::Config::default().baudrate(115200.bps()),
             &clocks,
         )
         .unwrap();
@@ -736,6 +736,10 @@ mod rtic_app {
             usb1_vbus_pin,
         };
 
+        // Set the ARM SLEEPONEXIT bit to go to sleep after handling interrupts
+        // See https://developer.arm.com/docs/100737/0100/power-management/sleep-mode/sleep-on-exit-bit
+        cx.core.SCB.set_sleeponexit();
+
         // Schedule tasks
 
         ui_task::spawn().ok();
@@ -793,8 +797,10 @@ mod rtic_app {
     )]
     fn idle(mut cx: idle::Context) -> ! {
         loop {
-            short_busywait();
-            //cx.shared.debug_pin.lock(|pin| { pin.toggle(); });
+            // Wait For Interrupt is used instead of a busy-wait loop to allow MCU to sleep
+            // between interrupts
+            // https://developer.arm.com/documentation/ddi0406/c/Application-Level-Architecture/Instruction-Details/Alphabetical-list-of-instructions/WFI
+            rtic::export::wfi()
         }
     }
 

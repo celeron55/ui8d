@@ -482,7 +482,7 @@ define_parameters! {
     },
     IpdmCurrent1 {
         display_name: "IPDM group 1",
-        decimals: 3,
+        decimals: 2,
         unit: "A",
         can_map: CanMap {
             id: Id::Standard(StandardId::new(0x206).unwrap()),
@@ -493,7 +493,7 @@ define_parameters! {
     },
     IpdmCurrent2 {
         display_name: "IPDM group 2",
-        decimals: 3,
+        decimals: 2,
         unit: "A",
         can_map: CanMap {
             id: Id::Standard(StandardId::new(0x206).unwrap()),
@@ -504,7 +504,7 @@ define_parameters! {
     },
     IpdmCurrent3 {
         display_name: "IPDM group 3",
-        decimals: 3,
+        decimals: 2,
         unit: "A",
         can_map: CanMap {
             id: Id::Standard(StandardId::new(0x206).unwrap()),
@@ -515,7 +515,7 @@ define_parameters! {
     },
     IpdmCurrent4 {
         display_name: "IPDM group 4",
-        decimals: 3,
+        decimals: 2,
         unit: "A",
         can_map: CanMap {
             id: Id::Standard(StandardId::new(0x206).unwrap()),
@@ -531,13 +531,13 @@ define_parameters! {
         can_map: CanMap {
             id: Id::Standard(StandardId::new(0x206).unwrap()),
             bits: CanBitSelection::BeUnsigned(48, 12),
-            scale: 1.0 / 256.0,
+            scale: 1.0 / (256.0 / 3.0),
         },
         report_map: ReportMap { name: "ipgL", decimals: 2, scale: 1.0 },
     },
     IpdmM1 {
         display_name: "IPDM M1",
-        decimals: 3,
+        decimals: 2,
         unit: "V",
         can_map: CanMap {
             id: Id::Standard(StandardId::new(0x204).unwrap()),
@@ -547,7 +547,7 @@ define_parameters! {
     },
     IpdmM2 {
         display_name: "IPDM M2",
-        decimals: 3,
+        decimals: 2,
         unit: "V",
         can_map: CanMap {
             id: Id::Standard(StandardId::new(0x204).unwrap()),
@@ -557,7 +557,7 @@ define_parameters! {
     },
     IpdmM3 {
         display_name: "IPDM M3",
-        decimals: 3,
+        decimals: 2,
         unit: "V",
         can_map: CanMap {
             id: Id::Standard(StandardId::new(0x204).unwrap()),
@@ -567,7 +567,7 @@ define_parameters! {
     },
     IpdmM4 {
         display_name: "IPDM M4",
-        decimals: 3,
+        decimals: 2,
         unit: "V",
         can_map: CanMap {
             id: Id::Standard(StandardId::new(0x204).unwrap()),
@@ -577,7 +577,7 @@ define_parameters! {
     },
     IpdmM5 {
         display_name: "IPDM M5",
-        decimals: 3,
+        decimals: 2,
         unit: "V",
         can_map: CanMap {
             id: Id::Standard(StandardId::new(0x205).unwrap()),
@@ -587,7 +587,7 @@ define_parameters! {
     },
     IpdmM6 {
         display_name: "IPDM M6",
-        decimals: 3,
+        decimals: 2,
         unit: "V",
         can_map: CanMap {
             id: Id::Standard(StandardId::new(0x205).unwrap()),
@@ -657,6 +657,17 @@ define_parameters! {
             bits: CanBitSelection::Bit(7),
             scale: 1.0,
         },
+    },
+    IpdmVaux {
+        display_name: "IPDM Vaux",
+        decimals: 2,
+        unit: "V",
+        can_map: CanMap {
+            id: Id::Standard(StandardId::new(0x205).unwrap()),
+            bits: CanBitSelection::BeUnsigned(52, 12),
+            scale: 1.0 / 128.0,
+        },
+        report_map: ReportMap { name: "ipvaux", decimals: 1, scale: 1.0 },
     },
     PmState {
         display_name: "PmState",
