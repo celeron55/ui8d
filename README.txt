@@ -5,18 +5,25 @@ UI8D (ui8d) is a user interface and telematics board. It is mainly targeted
 towards EV conversions and for being a companion board to the IPDM56v2, but it
 can be useful for other purposes also.
 
-Software gotchas
-================
+The software runs on an STM32F4 and it can host different modules:
+- ILI9341 (LCD)
+- SIM7600 (LTE)
+- RFM95 (LoRa)
+- W5500 (Ethernet)
 
-Some modules have been frozen into the firmware, to enable having space left for
-the actual program. Here is the current list:
-- ili9341.py
+It can be programmed in multiple programming languages, including:
+- Rust
+- MicroPython
+- C++ (*)
+- C (*)
+
+(*) No example software provided
 
 Hardware gotchas
 ================
 
-Remote8D v2.0 (UI8D v2.0)
--------------------------
+UI8D v2.0 (also known as Remote8D v2.0)
+---------------------------------------
 
 1. U305 needs to be rotated so that (when looking at it so that there's one top
    pin and two bottom pins) the top pin moves in place of the right pin, and the
@@ -55,12 +62,19 @@ Remote8D v2.0 (UI8D v2.0)
    all_, you should replace the 200mA PPTCs with 1k 1206 resistors. This is
    _untested_ and may or may not provide enough protection for the drivers.
 
-MicroPython
-===========
+MicroPython port
+================
+
+The MicroPython port for this board is available at
+https://github.com/celeron55/ui8d_micropython.git
 
 You can use micropython on UI8D.
 
 You should compile the special board port that was made for the UI8D.
+
+Some modules have been frozen into the firmware, to enable having space left for
+the actual program. Here is the current list:
+- ili9341.py
 
 Micropython's stm32f407 discovery firmware kind of works, but it has unnecessary
 and annoying restrictions like SPI3 and PB3 not being available (needed for the
@@ -117,4 +131,9 @@ np.write()
 
 while True:
     lcd_backlight.on()
+
+License
+=======
+
+See LICENSE.txt
 
