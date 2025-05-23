@@ -62,6 +62,14 @@ UI8D v2.0 (also known as Remote8D v2.0)
    all_, you should replace the 200mA PPTCs with 1k 1206 resistors. This is
    _untested_ and may or may not provide enough protection for the drivers.
 
+Rust example
+============
+
+Rust is the recommended programming language, as it allows you to cram way more,
+way faster code onto the STM32.
+
+See https://github.com/celeron55/ui8d/tree/master/rust/ui8drust
+
 MicroPython port
 ================
 
@@ -97,7 +105,7 @@ NOTE: Use mpremote to manage the board, OR picocom --baud 115200 -l -e x /dev/tt
 
 NOTE: Install packages by copying them from https://github.com/micropython/micropython-lib/tree/master/micropython
 
-NOTE: Test programs are located in the ui8d repository, under `/micropython/examples`.
+NOTE: Test programs are located in https://github.com/celeron55/ui8d/tree/master/micropython/examples
 
 ```
 print("Hello World!")
