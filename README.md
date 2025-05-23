@@ -99,13 +99,12 @@ NOTE: Install packages by copying them from https://github.com/micropython/micro
 
 NOTE: Test programs are located in the ui8d repository, under test_firmware/.
 
+```
 print("Hello World!")
 
 import machine
 from machine import Pin
 
-# TODO: PWM control for backlight
-# TODO: Measure ambient brightness using LDR at pin PA3 and set brightness based on that
 lcd_backlight = Pin.board.PD12
 
 import neopixel
@@ -122,15 +121,12 @@ can.recv(0)
 np[0] = (0, 1, 3)
 np.write()
 
-#import demo_color_palette
-#lcd_backlight.on()
-#demo_color_palette.test_palette()
-
 np[0] = (0, 3, 1)
 np.write()
 
 while True:
     lcd_backlight.on()
+```
 
 License
 =======
