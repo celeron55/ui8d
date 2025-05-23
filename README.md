@@ -97,7 +97,7 @@ NOTE: Use mpremote to manage the board, OR picocom --baud 115200 -l -e x /dev/tt
 
 NOTE: Install packages by copying them from https://github.com/micropython/micropython-lib/tree/master/micropython
 
-NOTE: Test programs are located in the ui8d repository, under test_firmware/.
+NOTE: Test programs are located in the ui8d repository, under `/micropython/examples`.
 
 ```
 print("Hello World!")
